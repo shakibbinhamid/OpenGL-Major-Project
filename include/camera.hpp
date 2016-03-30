@@ -87,6 +87,8 @@ public:
         if (direction == BACKWARD)  position -= front * velocity;
         if (direction == LEFT)      position -= right * velocity;
         if (direction == RIGHT)     position += right * velocity;
+        
+        position.y = 0.0f; // to restrict camera movement in xz plane
     }
     
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.

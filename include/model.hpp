@@ -7,7 +7,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "mesh.h"
+#include "mesh.hpp"
+#include "gl_util.hpp"
 
 using namespace std;
 
@@ -167,7 +168,7 @@ private:
             }
             if(!skip) {   // If texture hasn't been loaded already, load it
                 Texture texture;
-                texture.id = TextureFromFile(str.C_Str(), this->directory);
+                texture.id = TextureFromFile(directory + '/' + string(str.C_Str()));
                 texture.type = typeName;
                 texture.path = str;
                 textures.push_back(texture);
@@ -177,38 +178,3 @@ private:
         return textures;
     }
 };
-
-GLint TextureFromFile(const char* path, string directory) {
-    
-    // prepare right path for texture data
-    string filename = string(path);
-    filename = directory + '/' + filename;
-    
-    //Generate texture ID
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    int width,height, comp;
-    
-    cout << "loading texture from " << filename.c_str() << endl;
-    
-    // Load, create texture and generate mipmaps
-    unsigned char* image = stbi_load(filename.c_str(), &width, &height, &comp, STBI_rgb);
-    if(image == nullptr)
-        throw(std::string("Failed to load texture"));
-    cout << "texture loaded successfully " << filename.c_str() << endl;
-    
-    // Assign texture to ID
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    
-    // Parameters
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    // delete image data
-    stbi_image_free(image);
-    return textureID;
-}

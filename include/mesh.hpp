@@ -90,6 +90,22 @@ public:
         }
     }
     
+    void setTextures(vector<Texture> textures){
+        this->textures = textures;
+    }
+    
+    void addTexture(Texture texture){
+        textures.push_back(texture);
+    }
+    
+    void addTextureFromFile(string path, string typeName){
+        Texture texture;
+        texture.id = TextureFromFile(path);
+        texture.type = typeName;
+        texture.path = path;
+        textures.push_back(texture);
+    }
+    
 private:
     
     // opengl data containers

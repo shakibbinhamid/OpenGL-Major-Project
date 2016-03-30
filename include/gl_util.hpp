@@ -15,7 +15,7 @@
 #include <GLFW/glfw3.h> /* GLFW helper library */
 #include <stdarg.h>
 #include <stdbool.h>
-#include "Camera.h"
+#include "camera.hpp"
 //#define bool int // for visual studio
 //#define true 1
 //#define false 0
@@ -35,5 +35,7 @@ extern GLfloat lastFrame;
 bool start_gl ();
 
 void do_movement();
+
+GLint TextureFromFile(string filename);
 
 #endif

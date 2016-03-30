@@ -10,6 +10,7 @@
  \*****************************************************************************/
 
 #include "gl_util.hpp"
+#include "stb_image.h"
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
@@ -101,4 +102,40 @@ void do_movement() {
         camera.processLook(-2, 0);
     if(keys[GLFW_KEY_RIGHT])
         camera.processLook(2, 0);
+}
+
+/*
+ Will connect rgba texture to GL_TEXTURE_2D, GL_REPEAT (both s, t), GL_LINEAR filtering
+ */
+GLint TextureFromFile(string filename) {
+    
+    // prepare right path for texture data
+    
+    //Generate texture ID
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    int width,height, comp;
+    
+    cout << "loading texture from " << filename.c_str() << endl;
+    
+    // Load, create texture and generate mipmaps
+    unsigned char* image = stbi_load(filename.c_str(), &width, &height, &comp, STBI_rgb);
+    if(image == nullptr)
+        throw(std::string("Failed to load texture"));
+    cout << "texture loaded successfully " << filename.c_str() << endl;
+    
+    // Assign texture to ID
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    
+    // Parameters
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    // delete image data
+    stbi_image_free(image);
+    return textureID;
 }

@@ -23,10 +23,11 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include "stb_image.h"
-#include "shader.h"
-#include "camera.h"
+#include "shader.hpp"
+#include "camera.hpp"
 #include "gl_util.hpp"
-#include "model.h"
+#include "model.hpp"
+#include "mesh_generator.hpp"
 
 ///////////////////////////////// GLOBALS ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -66,12 +67,18 @@ int main() {
     assert(start_gl());
     
     // Build and compile our shader program
-    Shader shader("shaders/shader.vs", "shaders/shader.frag");
+    Shader shader("shaders/shader.vs",
+                        "shaders/shader.frag");
     
-    Shader lampShader("shaders/shader.vs", "shaders/lamp.frag");
+    Shader sunShader("shaders/sun.vs",
+                     "shaders/sun.frag");
     //GLchar * path = "/Users/shakib-binhamid/Downloads/nanosuit";
     // Load models
     Model ourModel("models/nanosuit/nanosuit.obj");
+    
+    Mesh sun = generateUVSphere(50, 50, 1);
+    sun.addTextureFromFile("images/sunmap.jpg",
+                           "material.texture_diffuse");
     
     /////////////////  The positions for the spheres in q4  ////////////////////////////////////////////
 
@@ -82,14 +89,6 @@ int main() {
     };
     
     /////////////////  Uniform variables for MVP in VS  /////////////////////////////////////////////////
-    
-    GLint modelLoc = glGetUniformLocation(shader.Program, "model");
-    GLint viewLoc = glGetUniformLocation(shader.Program, "view");
-    GLint projLoc = glGetUniformLocation(shader.Program, "projection");
-    
-    // uniforms for lighting
-    GLint lightPosLoc = glGetUniformLocation(shader.Program, "light.position");
-    GLint viewPosLoc = glGetUniformLocation(shader.Program, "viewPos");
     
     // Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -109,8 +108,8 @@ int main() {
         // Transformation matrices
         glm::mat4 projection = glm::perspective(camera.getZoom(), (float)WIDTH/(float)HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
         
         // Set the lighting uniforms
         glUniform3f(glGetUniformLocation(shader.Program, "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
@@ -135,8 +134,17 @@ int main() {
         glm::mat4 model;
         model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // Translate it down a bit so it's at the center of the scene
         model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         ourModel.Draw(shader);
+        
+        sunShader.Use();
+        // Draw the loaded model
+        model = glm::mat4();
+        model = glm::translate(model, pointLightPositions[0]); // Translate it down a bit so it's at the center of the scene
+        glUniformMatrix4fv(glGetUniformLocation(sunShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(glGetUniformLocation(sunShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(sunShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        sun.Draw(sunShader);
         
         // Swap the screen buffers
         glfwSwapBuffers(window);
@@ -145,123 +153,4 @@ int main() {
     glfwDestroyWindow(window);
     glfwTerminate();
     return EXIT_SUCCESS;
-}
-
-//////////////////////////////////////// DRAWING COMMAND //////////////////////////////////////////////////////////////////////////////////
-
-void drawSphere(Shader * shader, GLuint * sphere_VAO, std::vector<GLint> * sphere_idx,
-                Shader * lampShader,
-                GLint * lightPosLoc, GLint * viewPosLoc,
-                GLuint * diff_texture, GLuint * spec_texture,
-                GLuint count, glm::vec3 * locations, GLint * modelLoc, GLint * viewLoc, GLint * projLoc) {
-    
-    // Activate shader
-    shader->Use();
-    
-    // camera position
-    glUniform3f(*viewPosLoc, camera.getPosition().x, camera.getPosition().y, camera.getPosition().z); // camera position for spec light
-    
-    // light source position
-    glUniform3f(*lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
-    
-    // sphere material
-    GLint matDiffLoc = glGetUniformLocation(shader->Program, "material.diffuse");
-    GLint matSpecularLoc = glGetUniformLocation(shader->Program, "material.specular");
-    GLint matShineLoc    = glGetUniformLocation(shader->Program, "material.shininess");
-    
-    glUniform1i(matDiffLoc, 0);
-    glUniform1i(matSpecularLoc, 1);
-    glUniform1f(matShineLoc,    32.0f);
-    
-    glUniform1f(glGetUniformLocation(shader->Program, "light.constant"),  1.0f);
-    glUniform1f(glGetUniformLocation(shader->Program, "light.linear"),    0.09);
-    glUniform1f(glGetUniformLocation(shader->Program, "light.quadratic"), 0.032);
-    
-    // light source
-    GLint lightAmbientLoc  = glGetUniformLocation(shader->Program, "light.ambient");
-    GLint lightDiffuseLoc  = glGetUniformLocation(shader->Program, "light.diffuse");
-    GLint lightSpecularLoc = glGetUniformLocation(shader->Program, "light.specular");
-    
-    glUniform3f(lightAmbientLoc,  0.2f, 0.2f, 0.2f);
-    glUniform3f(lightDiffuseLoc,  0.5f, 0.5f, 0.5f); // Let's darken the light a bit to fit the scene
-    glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
-
-    // Pass the view and projection matrices to the shader
-    glm::mat4 view = camera.GetViewMatrix(); // Camera/View transformation
-    glm::mat4 projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f); // Projection
-    glUniformMatrix4fv(*viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(*projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-    // place the sphere in the right place
-    glBindVertexArray(*sphere_VAO);
-    
-    // Bind Textures using texture units
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, *diff_texture);
-    
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, *spec_texture); // TODO: change this to specMap
-    
-    // larger sphere
-    glm::mat4 model; // model
-    
-    for (int i = 0; i < count; i++) {
-        model = glm::mat4();
-        model = glm::translate(model, locations[i]);
-        model = glm::rotate(model, (GLfloat)glfwGetTime() * 2, glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.2f));
-        glUniformMatrix4fv(*modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(shader->Program, "ourTexture1"), 0);
-        glDrawElements(GL_TRIANGLES, (GLint)sphere_idx->size(), GL_UNSIGNED_INT, 0);
-    }
-    
-    glBindVertexArray(0); // done drawing sphere, unload VAO
-}
-
-///////////////////////////////// HELPER FUNCTIONS //////////////////////////////////////////////////////////////////////////
-
-/*
- Generates a sphere and populates the vertices, indices based on how many 'stacks' and 'slices' are needed.
- It is a UV sphere.
- vertices contain position, normal, texcord
- q2 verts just contain position, normal
- */
-Mesh generateSphere (const GLint Stacks, const GLint Slices, const GLfloat r){
-    std::vector<Vertex>  vertices;
-    std::vector<GLuint>  indices;
-    std::vector<Texture> textures;
-    for (int i = 0; i <= Stacks; ++i){
-        float V   = i / (float) Stacks;
-        float phi = V * glm::pi <float> ();
-        // Loop Through Slices
-        for (int j = 0; j <= Slices; ++j){
-            float U = j / (float) Slices;
-            float theta = U * (glm::pi <float> () * 2);
-            
-            // Calc The Vertex Positions
-            float x = r * cosf (theta) * sinf (phi);
-            float y = r * cosf (phi);
-            float z = r * sinf (theta) * sinf (phi);
-            
-            // vertices for sphere
-            Vertex v;
-            v.position  = glm::vec3(x, y, z);
-            v.normal    = glm::vec3(v.position + glm::normalize(v.position) * 0.05f);
-            v.texCoords = glm::vec2 (U, V);
-            
-            vertices.push_back(v);
-        }
-    }
-    
-    for (int i = 0; i < Slices * Stacks + Slices; ++i){
-        indices.push_back (i);
-        indices.push_back (i + Slices + 1);
-        indices.push_back (i + Slices);
-        
-        indices.push_back (i + Slices + 1);
-        indices.push_back (i);
-        indices.push_back (i + 1);
-    }
-    
-    return Mesh(vertices, indices, textures);
 }
