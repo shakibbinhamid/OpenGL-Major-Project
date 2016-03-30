@@ -88,7 +88,7 @@ public:
         if (direction == LEFT)      position -= right * velocity;
         if (direction == RIGHT)     position += right * velocity;
         
-        position.y = 0.0f; // to restrict camera movement in xz plane
+        //position.y = 0.0f; // to restrict camera movement in xz plane
     }
     
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
@@ -130,6 +130,22 @@ public:
     
     void setZoom(GLfloat zm){
         zoom = zm;
+    }
+    
+    glm::vec3 getFront(){
+        return front;
+    }
+    
+    void setFront(glm::vec3 fr){
+        front = fr;
+    }
+    
+    GLfloat getPitch(){
+        return pitch;
+    }
+    
+    void setPitch(GLfloat p){
+        pitch = p;
     }
     
     void render(){

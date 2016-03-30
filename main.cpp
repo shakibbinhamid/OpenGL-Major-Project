@@ -36,7 +36,7 @@ GLuint WIDTH = 800, HEIGHT = 600;
 GLFWwindow* window = nullptr;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 0.0f, 4.0f));
+Camera camera(glm::vec3(-4.02939f, 10.0f, -34.2374f));
 bool keys[1024];
 GLfloat lastX = 400, lastY = 300;
 bool firstMouse = true;
@@ -74,9 +74,9 @@ int main() {
                      "shaders/sun.frag");
     //GLchar * path = "/Users/shakib-binhamid/Downloads/nanosuit";
     // Load models
-    Model ourModel("models/nanosuit/nanosuit.obj");
+    Model ourModel("models/environment/Street environment_V01.obj");
     
-    Mesh sun = generateUVSphere(50, 50, 1);
+    Mesh sun = generateUVSphere(50, 50, 10);
     sun.addTextureFromFile("images/sunmap.jpg",
                            "material.texture_diffuse");
     
@@ -84,7 +84,7 @@ int main() {
 
     // Point light positions
     glm::vec3 pointLightPositions[] = {
-        glm::vec3(0.0f, 0.0f, 5.0f),
+        glm::vec3(0.0f, 50.0f, 5.0f),
         glm::vec3(0.0f, 0.0f, -5.0f)
     };
     
@@ -92,6 +92,9 @@ int main() {
     
     // Main loop
     while (!glfwWindowShouldClose(window)) {
+        
+        glm::vec3 sunPos = glm::vec3(100 * cos(glfwGetTime()/2), 100 * sin(glfwGetTime()/2), 0.0f);
+        
         GLfloat currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -101,7 +104,7 @@ int main() {
         do_movement();
         
         // Clear the color buffer
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(sin(glfwGetTime()/2), sin(glfwGetTime()/2)/2, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         shader.Use();   // <-- Don't forget this one!
@@ -113,34 +116,39 @@ int main() {
         
         // Set the lighting uniforms
         glUniform3f(glGetUniformLocation(shader.Program, "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+        // Directional light
+        glUniform3f(glGetUniformLocation(shader.Program, "dirLight.direction"), sunPos.x, -sunPos.y, sunPos.z);
+        glUniform3f(glGetUniformLocation(shader.Program, "dirLight.ambient"), 0.05f, 0.05f, 0.05f);
+        glUniform3f(glGetUniformLocation(shader.Program, "dirLight.diffuse"), 0.9f, 0.9f, 0.9f);
+        glUniform3f(glGetUniformLocation(shader.Program, "dirLight.specular"), 0.9f, 0.9f, 0.9f);
         // Point light 1
         glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);
-        glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].ambient"), 0.05f, 0.05f, 0.05f);
+        glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].ambient"), 0.05f, 0.05f, 1.05f);
         glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].diffuse"), 1.0f, 1.0f, 1.0f);
         glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].specular"), 1.0f, 1.0f, 1.0f);
         glUniform1f(glGetUniformLocation(shader.Program, "pointLights[0].constant"), 1.0f);
         glUniform1f(glGetUniformLocation(shader.Program, "pointLights[0].linear"), 0.009);
         glUniform1f(glGetUniformLocation(shader.Program, "pointLights[0].quadratic"), 0.0032);
         // Point light 2
-        glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);
-        glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].ambient"), 0.05f, 0.05f, 0.05f);
-        glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].diffuse"), 1.0f, 1.0f, 1.0f);
-        glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].specular"), 1.0f, 1.0f, 1.0f);
-        glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].constant"), 1.0f);
-        glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].linear"), 0.009);
-        glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].quadratic"), 0.0032);
+//        glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);
+//        glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].ambient"), 0.05f, 0.05f, 0.05f);
+//        glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].diffuse"), 1.0f, 1.0f, 1.0f);
+//        glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].specular"), 1.0f, 1.0f, 1.0f);
+//        glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].constant"), 1.0f);
+//        glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].linear"), 0.009);
+//        glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].quadratic"), 0.0032);
         
         // Draw the loaded model
         glm::mat4 model;
-        model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // Translate it down a bit so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
+        model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f)); // Translate it down a bit so it's at the center of the scene
+        //model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         ourModel.Draw(shader);
         
         sunShader.Use();
         // Draw the loaded model
         model = glm::mat4();
-        model = glm::translate(model, pointLightPositions[0]); // Translate it down a bit so it's at the center of the scene
+        model = glm::translate(model, sunPos); // Translate it down a bit so it's at the center of the scene
         glUniformMatrix4fv(glGetUniformLocation(sunShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(glGetUniformLocation(sunShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(sunShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
