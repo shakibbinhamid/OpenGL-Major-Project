@@ -106,6 +106,24 @@ public:
         textures.push_back(texture);
     }
     
+    void render(){
+        
+        cout << " Vertices ====> " << endl;
+        
+        for(auto const& v: vertices) {
+            cout << "{ ";
+            cout << v.position.x << " " << v.position.y << " " << v.position.z << " : ";
+            cout << v.normal.x << " " << v.normal.y << " " << v.normal.z << " : ";
+            cout << v.texCoords.x << " " << v.texCoords.y << " }" << endl;
+        }
+        
+        cout << " Textures ====> " << endl;
+        
+        for(auto const& t: textures) {
+            cout << "{ " << t.id << " : " << t.type << " : " << string(t.path.C_Str()) << "}" << endl;
+        }
+    }
+    
 private:
     
     // opengl data containers
