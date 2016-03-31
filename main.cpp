@@ -36,7 +36,7 @@ GLuint WIDTH = 800, HEIGHT = 600;
 GLFWwindow* window = nullptr;
 
 // Camera
-Camera camera(glm::vec3(-4.02939f, 10.0f, -34.2374f));
+Camera camera(glm::vec3(0.0f, 0.0f, 0.0f)); //-4.02939f, 10.0f, -34.2374f
 bool keys[1024];
 GLfloat lastX = 400, lastY = 300;
 bool firstMouse = true;
@@ -74,10 +74,14 @@ int main() {
                      "shaders/sun.frag");
     //GLchar * path = "/Users/shakib-binhamid/Downloads/nanosuit";
     // Load models
-    Model ourModel("models/environment/Street environment_V01.obj");
+    Model env("models/environment/Street environment_V01.obj");
     
-    Mesh sun = generateUVSphere(50, 50, 10);
+    Mesh sun = generateUVSphere(50, 50, 2);
     sun.addTextureFromFile("images/sunmap.jpg",
+                           "material.texture_diffuse");
+    
+    Mesh floor = generateRectangularFloor(20, 20, 0);
+    floor.addTextureFromFile("images/concrete.jpg",
                            "material.texture_diffuse");
     
     /////////////////  The positions for the spheres in q4  ////////////////////////////////////////////
@@ -93,7 +97,9 @@ int main() {
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         
-        glm::vec3 sunPos = glm::vec3(100 * cos(glfwGetTime()/2), 100 * sin(glfwGetTime()/2), 0.0f);
+        glm::vec3 sunPos = glm::vec3(100 * cos(glfwGetTime()/2), 50 * sin(glfwGetTime()/2), 0.0f);
+        
+        if (sunPos.y < -30) sunPos.y = -200;
         
         GLfloat currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -104,7 +110,8 @@ int main() {
         do_movement();
         
         // Clear the color buffer
-        glClearColor(sin(glfwGetTime()/2), sin(glfwGetTime()/2)/2, 0.0f, 1.0f);
+        glClearColor(0.5f, 0.5f, 0.0f, 0.0f);
+        //glClearColor(sin(glfwGetTime()/2), sin(glfwGetTime()/2)/2, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         shader.Use();   // <-- Don't forget this one!
@@ -118,6 +125,7 @@ int main() {
         glUniform3f(glGetUniformLocation(shader.Program, "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
         // Directional light
         glUniform3f(glGetUniformLocation(shader.Program, "dirLight.direction"), sunPos.x, -sunPos.y, sunPos.z);
+        glUniform1f(glGetUniformLocation(shader.Program, "Material.shininess"), 0.05);
         glUniform3f(glGetUniformLocation(shader.Program, "dirLight.ambient"), 0.05f, 0.05f, 0.05f);
         glUniform3f(glGetUniformLocation(shader.Program, "dirLight.diffuse"), 0.9f, 0.9f, 0.9f);
         glUniform3f(glGetUniformLocation(shader.Program, "dirLight.specular"), 0.9f, 0.9f, 0.9f);
@@ -140,10 +148,15 @@ int main() {
         
         // Draw the loaded model
         glm::mat4 model;
-        model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f)); // Translate it down a bit so it's at the center of the scene
-        //model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+        model = glm::translate(model, glm::vec3(0.0f, -1.3f, 0.0f));
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        ourModel.Draw(shader);
+        env.Draw(shader);
+        
+        model = glm::mat4();
+        model = glm::translate(model, glm::vec3(0.0f, -0.245f, 0.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        floor.Draw(shader);
         
         sunShader.Use();
         // Draw the loaded model

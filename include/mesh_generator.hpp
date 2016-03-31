@@ -58,4 +58,40 @@ Mesh generateUVSphere (const GLint Stacks, const GLint Slices, const GLfloat r){
     return Mesh(vertices, indices, textures);
 }
 
+Mesh generateRectangularFloor (GLfloat width, GLfloat height, GLfloat elevation) {
+    std::vector<Vertex>  vertices;
+    std::vector<GLuint>  indices;
+    std::vector<Texture> textures;
+    
+    GLfloat vPositions[4][3] = {
+        {-width/2, elevation, -height/2},
+        {width/2, elevation, -height/2},
+        {width/2, elevation, height/2},
+        {-width/2, elevation, height/2},
+    };
+    
+    GLfloat vTexCords[4][2] = {
+        {0.0, 0.0},
+        {1.0, 0.0},
+        {1.0, 1.0},
+        {0.0, 1.0}
+    };
+    
+    int j = 0;
+    for (int i = 0; i < 4; i++) {
+        Vertex v;
+        
+        v.position = glm::vec3(vPositions[i][j], vPositions[i][j+1], vPositions[i][j+2]);
+        v.normal = glm::vec3(glm::vec3(0.0f, 1.0f, 0.0f));
+        v.texCoords = glm::vec2(vTexCords[i][j], vTexCords[i][j+1]);
+        
+        vertices.push_back(v);
+    }
+    
+    indices.push_back(2); indices.push_back(1); indices.push_back(0);
+    indices.push_back(3); indices.push_back(2); indices.push_back(0);
+    
+    return Mesh(vertices, indices, textures);
+}
+
 #endif /* mesh_generator_h */
