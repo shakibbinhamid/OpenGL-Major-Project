@@ -55,8 +55,8 @@ void main()
     
     for(int i = 0; i < NR_POINT_LIGHTS; i++)
         result += CalcPointLight(pointLights[i], material, norm, fs_in.fragPosition, viewDir);
-    
-    color = vec4(result, 1.0f);
+    float gamma = 2.2f;
+    color = vec4(pow(result, vec3(1.0/gamma)), 1.0f);
 }
 
 
@@ -67,7 +67,10 @@ vec3 CalcPointLight(PointLight light, Material mat, vec3 normal, vec3 fragPos, v
     float diff = max(dot(normal, lightDir), 0.0);
     // Specular shading
     vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), mat.shininess);
+    float spec = 0.0;
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    spec = pow(max(dot(normal, halfwayDir), 0.0), mat.shininess); // phong-blinn
+    //spec = pow(max(dot(viewDir, reflectDir), 0.0), mat.shininess/4); // phong
     // Attenuation
     float distance = length(light.position - fragPos);
     float attenuation = 1.0f / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
