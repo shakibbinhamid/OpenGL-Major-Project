@@ -26,8 +26,6 @@ extern GLFWwindow* window;
 
 extern Camera camera;
 extern bool keys[];
-extern GLfloat lastX, lastY;
-extern bool firstMouse;
 
 extern GLfloat deltaTime;
 extern GLfloat lastFrame;
