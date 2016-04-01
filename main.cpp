@@ -29,6 +29,10 @@
 #include "model.hpp"
 #include "mesh_generator.hpp"
 
+const GLfloat ATTEN_CONST = 1.0f;
+const GLfloat ATTEN_LIN   = 0.009;
+const GLfloat ATTEN_QUAD  = 0.0032;
+
 ///////////////////////////////// GLOBALS ////////////////////////////////////////////////////////////////////////////////////////////
 
 // Window dimensions
@@ -53,10 +57,60 @@ GLfloat radius = 1.0f;
 glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
 
 
-/////////////////////////////// PROTOTYPES //////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// HELPERS //////////////////////////////////////////////////////////////////////////////////////////
 
-// generates a sphere and populates vertices, indices. q2verts are only used in question 2
-Mesh generateSphere (GLint Stacks, GLint Slices, GLfloat r);
+void setDirLightUniforms(Shader shader, string dirLightNr, glm::vec3 sunPos, glm::vec3 ambient, glm::vec3 diff, glm::vec3 spec){
+    glUniform3f(glGetUniformLocation(shader.Program, (dirLightNr + ".direction").c_str()), sunPos.x, -sunPos.y, sunPos.z);
+    glUniform3f(glGetUniformLocation(shader.Program, (dirLightNr + ".ambient").c_str()), ambient.x, ambient.y, ambient.z);
+    glUniform3f(glGetUniformLocation(shader.Program, (dirLightNr + ".diffuse").c_str()), diff.x, diff.y, diff.z);
+    glUniform3f(glGetUniformLocation(shader.Program, (dirLightNr + ".specular").c_str()), spec.x, spec.y, spec.z);
+}
+
+void setLampUniforms(Shader shader, string lampNr, glm::vec3 lampPos, glm::vec3 ambient, glm::vec3 diff, glm::vec3 spec){
+    // light variables
+    glUniform3f(glGetUniformLocation(shader.Program, (lampNr + ".position").c_str()), lampPos.x, lampPos.y, lampPos.z);
+    glUniform3f(glGetUniformLocation(shader.Program, (lampNr + ".ambient").c_str()), ambient.x, ambient.y, ambient.z);
+    glUniform3f(glGetUniformLocation(shader.Program, (lampNr + ".diffuse").c_str()), diff.x, diff.y, diff.z);
+    glUniform3f(glGetUniformLocation(shader.Program, (lampNr + ".specular").c_str()), spec.x, spec.y, spec.z);
+    
+    // attenuation
+    glUniform1f(glGetUniformLocation(shader.Program, (lampNr + ".constant").c_str()), ATTEN_CONST);
+    glUniform1f(glGetUniformLocation(shader.Program, (lampNr + ".linear").c_str()), ATTEN_LIN);
+    glUniform1f(glGetUniformLocation(shader.Program, (lampNr + ".quadratic").c_str()), ATTEN_QUAD);
+}
+
+void turnOffLamp(Shader shader, string lampNr, glm::vec3 lampPos){
+    setLampUniforms(shader, lampNr, lampPos, glm::vec3(), glm::vec3(), glm::vec3());
+}
+
+void turnOnLamp(Shader shader, string lampNr, glm::vec3 lampPos){
+    setLampUniforms(shader, lampNr, lampPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.10f, 0.10f, 0.10f), glm::vec3(1.0f, 1.0f, 1.0f));
+}
+
+void turnOnSun(Shader shader, string lampNr, glm::vec3 sunPos){
+    setDirLightUniforms(shader, lampNr, sunPos, glm::vec3(0.50f, 0.50f, 0.50f), glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.9f, 0.9f, 0.9f));
+}
+
+void turnOffSun(Shader shader, string lampNr, glm::vec3 sunPos){
+    setDirLightUniforms(shader, lampNr, sunPos, glm::vec3(0.00f, 0.00f, 0.00f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+}
+
+void drawModel(Shader shader, Model Model, glm::vec3 pos = glm::vec3(), glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotate = glm::vec3(), GLfloat angle = 0.0f){
+    glm::mat4 model = glm::mat4();
+    model = glm::translate(model, pos);
+    model = glm::rotate(model, angle, rotate);
+    model = glm::scale(model, scale);
+    glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    Model.Draw(shader);
+}
+
+void drawStreetLamp(Shader shader, Model lamp, glm::vec3 pos){
+    glm::mat4 model = glm::mat4();
+    model = glm::translate(model, pos);
+    model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
+    glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    lamp.Draw(shader);
+}
 
 ////////////////////////////// MAIN FUNCTION /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -77,6 +131,8 @@ int main() {
     Model env("models/environment/Street environment_V01.obj");
     
     Model lamp1("models/streetlamp/streetlamp.obj");
+    
+    Model road("models/Tree/Tree.obj");
     
     Mesh sun = generateUVSphere(50, 50, 5.00);
     sun.addTextureFromFile("images/sunmap.jpg",
@@ -103,9 +159,7 @@ int main() {
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         
-        glm::vec3 sunPos = glm::vec3(100 * cos(glfwGetTime()/2), 50 * sin(glfwGetTime()/2), 0.0f);
-        
-        if (sunPos.y < -30) sunPos.y = -200;
+        glm::vec3 sunPos = glm::vec3(100 * cos(glfwGetTime()/2), 50 * sin(glfwGetTime()/2), 0.0f); //glm::vec3(0.0f, 10.0f, 20.0f); //
         
         GLfloat currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -116,7 +170,7 @@ int main() {
         do_movement();
         
         // Clear the color buffer
-        glClearColor(sin(glfwGetTime()/2), sin(glfwGetTime()/2), 0.0f, 0.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         //glClearColor(sin(glfwGetTime()/2), sin(glfwGetTime()/2)/2, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
@@ -129,78 +183,26 @@ int main() {
         
         // Set the lighting uniforms
         glUniform3f(glGetUniformLocation(shader.Program, "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+        glUniform1f(glGetUniformLocation(shader.Program, "Material.shininess"), 0.05);
         // Directional light
         if (sunPos.y > 0) {
-            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.direction"), sunPos.x, -sunPos.y, sunPos.z);
-            glUniform1f(glGetUniformLocation(shader.Program, "Material.shininess"), 0.05);
-            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.ambient"), 0.05f, 0.05f, 0.05f);
-            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.diffuse"), 0.9f, 0.9f, 0.9f);
-            glUniform3f(glGetUniformLocation(shader.Program, "dirLight.specular"), 0.9f, 0.9f, 0.9f);
+            // turn on the sun
+            turnOnSun(shader, "dirLight", sunPos);
             
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].position"), pointLampPos[0].x, pointLampPos[0].y, pointLampPos[0].z);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].ambient"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].diffuse"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].specular"), 0.00f, 0.00f, 0.00f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[0].constant"), 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[0].linear"), 0.009);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[0].quadratic"), 0.0032);
-            // Point light 2
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].position"), pointLampPos[1].x, pointLampPos[1].y, pointLampPos[1].z);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].ambient"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].diffuse"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].specular"), 0.00f, 0.00f, 0.00f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].constant"), 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].linear"), 0.009);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].quadratic"), 0.0032);
-            // Point light 3
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[2].position"), pointLampPos[2].x, pointLampPos[2].y, pointLampPos[2].z);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[2].ambient"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[2].diffuse"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[2].specular"), 0.00f, 0.00f, 0.00f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[2].constant"), 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[2].linear"), 0.009);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[2].quadratic"), 0.0032);
-            // Point light 4
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[3].position"), pointLampPos[3].x, pointLampPos[3].y, pointLampPos[3].z);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[3].ambient"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[3].diffuse"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[3].specular"), 0.00f, 0.00f, 0.00f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[3].constant"), 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[3].linear"), 0.009);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[3].quadratic"), 0.0032);
+            // turn off street lamps
+            turnOffLamp(shader, "pointLights[0]", pointLampPos[0]);
+            turnOffLamp(shader, "pointLights[1]", pointLampPos[1]);
+            turnOffLamp(shader, "pointLights[2]", pointLampPos[2]);
+            turnOffLamp(shader, "pointLights[3]", pointLampPos[3]);
         } else {
-//        // Point light 1
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].position"), pointLampPos[0].x, pointLampPos[0].y, pointLampPos[0].z);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].ambient"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].diffuse"), 0.10f, 0.10f, 0.10f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[0].specular"), 1.0f, 1.0f, 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[0].constant"), 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[0].linear"), 0.009);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[0].quadratic"), 0.0032);
-            // Point light 2
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].position"), pointLampPos[1].x, pointLampPos[1].y, pointLampPos[1].z);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].ambient"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].diffuse"), 0.10f, 0.10f, 0.10f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[1].specular"), 1.0f, 1.0f, 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].constant"), 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].linear"), 0.009);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[1].quadratic"), 0.0032);
-            // Point light 3
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[2].position"), pointLampPos[2].x, pointLampPos[2].y, pointLampPos[2].z);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[2].ambient"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[2].diffuse"), 0.10f, 0.10f, 0.10f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[2].specular"), 1.0f, 1.0f, 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[2].constant"), 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[2].linear"), 0.009);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[2].quadratic"), 0.0032);
-            // Point light 4
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[3].position"), pointLampPos[3].x, pointLampPos[3].y, pointLampPos[3].z);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[3].ambient"), 0.00f, 0.00f, 0.00f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[3].diffuse"), 0.10f, 0.10f, 0.10f);
-            glUniform3f(glGetUniformLocation(shader.Program, "pointLights[3].specular"), 1.0f, 1.0f, 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[3].constant"), 1.0f);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[3].linear"), 0.009);
-            glUniform1f(glGetUniformLocation(shader.Program, "pointLights[3].quadratic"), 0.0032);
+            // turn off the sun
+            turnOffSun(shader, "dirLight", sunPos);
+            
+            // turn on the street lamps
+            turnOnLamp(shader, "pointLights[0]", pointLampPos[0]);
+            turnOnLamp(shader, "pointLights[1]", pointLampPos[1]);
+            turnOnLamp(shader, "pointLights[2]", pointLampPos[2]);
+            turnOnLamp(shader, "pointLights[3]", pointLampPos[3]);
         }
         
         // Draw the loaded model
@@ -211,33 +213,20 @@ int main() {
         env.Draw(shader);
         
         model = glm::mat4();
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+        model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        road.Draw(shader);
+        
+        model = glm::mat4();
         model = glm::translate(model, glm::vec3(0.0f, -0.245f, 0.0f));
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         floor.Draw(shader);
         
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(pointLampPos[0].x, -0.25f, pointLampPos[0].z));
-        model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
-        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        lamp1.Draw(shader);
-        
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(pointLampPos[1].x, -0.25f, pointLampPos[1].z));
-        model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
-        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        lamp1.Draw(shader);
-        
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(pointLampPos[2].x, -0.25f, pointLampPos[2].z));
-        model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
-        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        lamp1.Draw(shader);
-        
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(pointLampPos[3].x, -0.25f, pointLampPos[3].z));
-        model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
-        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        lamp1.Draw(shader);
+        drawStreetLamp(shader, lamp1, glm::vec3(pointLampPos[0].x, -0.25f, pointLampPos[0].z));
+        drawStreetLamp(shader, lamp1, glm::vec3(pointLampPos[1].x, -0.25f, pointLampPos[1].z));
+        drawStreetLamp(shader, lamp1, glm::vec3(pointLampPos[2].x, -0.25f, pointLampPos[2].z));
+        drawStreetLamp(shader, lamp1, glm::vec3(pointLampPos[3].x, -0.25f, pointLampPos[3].z));
         
         sunShader.Use();
         // Draw the loaded model
