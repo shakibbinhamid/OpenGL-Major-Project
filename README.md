@@ -1,1 +1,1 @@
-# OpenGL-Practice
+# OpenGL-Major-Project
