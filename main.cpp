@@ -198,7 +198,8 @@ int main() {
     //----------------------------------- initiate opengl ---------------------------------------------------------------/
     
     // start glfw and glew with default settings
-    assert(start_gl());
+    bool x = start_gl();
+    assert(x);
     
     //----------------------------------- Shaders ---------------------------------------------------------------/
     // Build and compile our shader program
