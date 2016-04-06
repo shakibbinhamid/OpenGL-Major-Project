@@ -34,6 +34,10 @@ bool start_gl ();
 
 void do_movement();
 
-GLint TextureFromFile(string filename);
+GLint Texture2DFromFile(string filename);
+
+GLint getMaxTextureSupported();
+
+GLuint loadCubemap(vector<const GLchar*> faces);
 
 #endif

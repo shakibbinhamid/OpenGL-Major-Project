@@ -17,11 +17,11 @@ GLint TextureFromFile(const char* path, string directory);
 class Model {
 public:
     // Constructor, expects a filepath to a 3D model.
-    Model(const GLchar* path) {
+    Model(const GLchar* path, const string name = "model") {
         cout << "------------------------------------------------" << endl;
         cout << "=========== Loading Model from " << path << " ===========" << endl;
         loadModel(path);
-        cout << "Model Loaded Successfully" << endl;
+        cout << "Model " << name << " Loaded Successfully" << endl;
         cout << "------------------------------------------------" << endl;
     }
     
@@ -36,6 +36,7 @@ private:
     vector<Mesh>    meshes;
     string          directory;
     vector<Texture> textures_loaded;	// Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
+    string          name;
     
     /*  Functions   */
     // Loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
@@ -168,7 +169,7 @@ private:
             }
             if(!skip) {   // If texture hasn't been loaded already, load it
                 Texture texture;
-                texture.id = TextureFromFile(directory + '/' + string(str.C_Str()));
+                texture.id = Texture2DFromFile(directory + '/' + string(str.C_Str()));
                 texture.type = typeName;
                 texture.path = str;
                 textures.push_back(texture);

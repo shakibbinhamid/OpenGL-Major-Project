@@ -20,6 +20,8 @@
 
 using namespace std;
 
+GLint max_texture_units;
+
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
     if((key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q) && action == GLFW_PRESS)
@@ -73,15 +75,22 @@ bool start_gl () {
     
     // Enable testing for depth so that stuff in the back are not drawn
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE); 
+    glEnable(GL_CULL_FACE);
+    
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_units);
     
     cout << "------------------------------------------------" << endl;
-    cout << "========= OpenGL info ========="   << endl;
-    cout << "Renderer: "                        << glGetString (GL_RENDERER) << endl;
-    cout << "OpenGL version supported "         << glGetString (GL_VERSION)  << endl;
+    cout << "========= OpenGL info ========="    << endl;
+    cout << "Renderer: "                         << glGetString (GL_RENDERER) << endl;
+    cout << "OpenGL version supported "          << glGetString (GL_VERSION)  << endl;
+    cout << "Max # of texture units supported : "<< max_texture_units         << endl;
     cout << "------------------------------------------------" << endl;
     
     return true;
+}
+
+GLint getMaxTextureSupported(){
+    return max_texture_units;
 }
 
 void do_movement() {
@@ -107,7 +116,7 @@ void do_movement() {
 /*
  Will connect rgba texture to GL_TEXTURE_2D, GL_REPEAT (both s, t), GL_LINEAR filtering
  */
-GLint TextureFromFile(string filename) {
+GLint Texture2DFromFile(string filename) {
     
     // prepare right path for texture data
     
@@ -121,8 +130,8 @@ GLint TextureFromFile(string filename) {
     // Load, create texture and generate mipmaps
     unsigned char* image = stbi_load(filename.c_str(), &width, &height, &comp, STBI_rgb);
     if(image == nullptr)
-        throw(std::string("Failed to load texture"));
-    cout << "texture loaded successfully " << filename.c_str() << endl;
+        throw(std::string("Failed to load texture from " + filename));
+    cout << "texture #"<< textureID << " loaded successfully " << filename.c_str() << endl;
     
     // Assign texture to ID
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -138,5 +147,33 @@ GLint TextureFromFile(string filename) {
     glBindTexture(GL_TEXTURE_2D, 0);
     // delete image data
     stbi_image_free(image);
+    return textureID;
+}
+
+GLuint loadCubemap(vector<const GLchar*> faces){
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glActiveTexture(GL_TEXTURE0);
+    
+    int width,height;
+    unsigned char* image;
+    
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+    for(GLuint i = 0; i < faces.size(); i++) {
+        image = stbi_load(faces[i], &width, &height, 0, STBI_rgb);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+        if(image == nullptr)
+            throw(std::string("Failed to load texture from ") + std::string(faces[i]));
+        cout << "texture #"<< textureID << " loaded successfully " << faces[i] << endl;
+    }
+    
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    stbi_image_free(image);
+    
     return textureID;
 }

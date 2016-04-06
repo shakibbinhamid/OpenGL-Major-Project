@@ -30,7 +30,8 @@ public:
     // Constructor
     Mesh(vector<Vertex>  vertices,
          vector<GLuint>  indices,
-         vector<Texture> textures)
+         vector<Texture> textures,
+         const string name = "mesh")
     {
         cout << "------------------------------------------------" << endl;
         cout << "creating a mesh ..." << endl;
@@ -38,11 +39,12 @@ public:
         this->vertices = vertices;
         this->indices  = indices;
         this->textures = textures;
+        this->name = name;
         
         // Now that we have all the required data, set the vertex buffers and its attribute pointers.
         setupMesh();
         
-        cout << "mesh created" << endl;
+        cout << "mesh " << name << " created" << endl;
         cout << "------------------------------------------------" << endl;
     }
     
@@ -96,18 +98,24 @@ public:
     
     void addTexture(Texture texture){
         textures.push_back(texture);
+        cout << "a new texture is now added, total textures found " << textures.size() << endl;
     }
     
     void addTextureFromFile(string path, string typeName){
         Texture texture;
-        texture.id = TextureFromFile(path);
+        texture.id = Texture2DFromFile(path);
         texture.type = typeName;
         texture.path = path;
-        textures.push_back(texture);
+        addTexture(texture);
+    }
+    
+    string getName(){
+        return name;
     }
     
     void render(){
         
+        cout << " Mesh " << name << endl;
         cout << " Vertices ====> " << endl;
         
         for(auto const& v: vertices) {
@@ -128,6 +136,8 @@ private:
     
     // opengl data containers
     GLuint VAO, VBO, EBO;
+    
+    string name;
     
     // Initializes all the buffer objects/arrays
     void setupMesh() {
@@ -155,6 +165,8 @@ private:
                      &indices[0],
                      GL_STATIC_DRAW);
         cout << "index data loaded" << endl;
+        
+        cout << "total " << textures.size() << " textures found in .mtl" << endl;
         
         // Set the vertex attribute pointers
         // Vertex Positions

@@ -198,8 +198,8 @@ int main() {
     //----------------------------------- initiate opengl ---------------------------------------------------------------/
     
     // start glfw and glew with default settings
-    bool x = start_gl();
-    assert(x);
+    bool initGL = start_gl();
+    assert(initGL);
     
     //----------------------------------- Shaders ---------------------------------------------------------------/
     // Build and compile our shader program
@@ -208,18 +208,87 @@ int main() {
     
     Shader sunShader("shaders/sun.vs",
                      "shaders/sun.frag");
+    
+    Shader skyboxShader("shaders/skybox.vs",
+                        "shaders/skybox.frag");
     //----------------------------------- Model and Mesh ---------------------------------------------------------------/
-    Model env("models/environment/Street environment_V01.obj");
-    Model straightLamp("models/streetlamp/streetlamp.obj");
-    Model road("models/Downloads/Tree/Tree.obj");
-    Mesh sun = generateUVSphere(50, 50, 2.00);
+    Model env("models/environment/Street environment_V01.obj", "Houses");
+    Model straightLamp("models/streetlamp/streetlamp.obj", "Straight Lamps");
+    Model road("models/Tree/Tree.obj", "Tree");
+    Mesh sun = generateUVSphere(50, 50, 2.00, "sun");
     sun.addTextureFromFile("images/sunmap.jpg",
                            "material.texture_diffuse");
-    Mesh floor = generateRectangularFloor(20, 20, 0);
+    Mesh floor = generateRectangularFloor(20, 20, 0, "roads");
     floor.addTextureFromFile("images/concrete.jpg",
                            "material.texture_diffuse");
     floor.addTextureFromFile("images/concrete_spec.jpeg",
                              "material.texture_specular");
+    
+    // ---------------------------------------------------------------------------------//
+    vector<const GLchar*> faces;
+    faces.push_back("models/mp_pr/pr_ft.tga");
+    faces.push_back("models/mp_pr/pr_bk.tga");
+    faces.push_back("models/mp_pr/pr_up.tga");
+    faces.push_back("models/mp_pr/pr_dn.tga");
+    faces.push_back("models/mp_pr/pr_rt.tga");
+    faces.push_back("models/mp_pr/pr_lf.tga");
+    GLuint cubemapTexture = loadCubemap(faces);
+    
+    GLfloat skyboxVertices[] = {
+        // Positions
+        -1.0f,  1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        
+        -1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+        
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        
+        -1.0f, -1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+        
+        -1.0f,  1.0f, -1.0f,
+        1.0f,  1.0f, -1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f, -1.0f,
+        
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+        1.0f, -1.0f,  1.0f
+    };
+    
+    // Setup skybox VAO
+    GLuint skyboxVAO, skyboxVBO;
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glBindVertexArray(0);
     
     //----------------------------------- Game loop ---------------------------------------------------------------/
     
@@ -247,6 +316,23 @@ int main() {
                     projection, view,
                     env, straightLamp, road,
                     floor, sun);
+        
+        // Draw skybox as last
+        glDepthFunc(GL_LEQUAL);  // Change depth function so depth test passes when values are equal to depth buffer's content
+        skyboxShader.Use();
+        view = glm::mat4(glm::mat3(camera.GetViewMatrix()));	// Remove any translation component of the view matrix
+        GLfloat brightness = sin(glfwGetTime()/2) <= 0.2 ? 0.2 : sin(glfwGetTime()/2);
+        glUniform4f(glGetUniformLocation(skyboxShader.Program, "uColor"), brightness, brightness, brightness, 1.0);
+        glUniformMatrix4fv(glGetUniformLocation(skyboxShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(skyboxShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        // skybox cube
+        glBindVertexArray(skyboxVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glUniform1i(glGetUniformLocation(shader.Program, "skybox"), 0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+        glDepthFunc(GL_LESS); // Set depth function back to default
         
         // Swap the screen buffers
         glfwSwapBuffers(window);

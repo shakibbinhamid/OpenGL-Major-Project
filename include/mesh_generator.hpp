@@ -18,7 +18,7 @@
  vertices contain position, normal, texcord
  q2 verts just contain position, normal
  */
-Mesh generateUVSphere (const GLint Stacks, const GLint Slices, const GLfloat r){
+Mesh generateUVSphere (const GLint Stacks, const GLint Slices, const GLfloat r, const string name = "sphere"){
     std::vector<Vertex>  vertices;
     std::vector<GLuint>  indices;
     std::vector<Texture> textures;
@@ -55,10 +55,10 @@ Mesh generateUVSphere (const GLint Stacks, const GLint Slices, const GLfloat r){
         indices.push_back (i + 1);
     }
     
-    return Mesh(vertices, indices, textures);
+    return Mesh(vertices, indices, textures, name);
 }
 
-Mesh generateRectangularFloor (GLfloat width, GLfloat height, GLfloat elevation) {
+Mesh generateRectangularFloor (GLfloat width, GLfloat height, GLfloat elevation, const string name = "floor") {
     std::vector<Vertex>  vertices;
     std::vector<GLuint>  indices;
     std::vector<Texture> textures;
