@@ -8,11 +8,11 @@ struct Material {
 
 struct PointLight {
     vec3 position;
-    
+
     float constant;
     float linear;
     float quadratic;
-    
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -20,7 +20,7 @@ struct PointLight {
 
 struct DirLight {
     vec3 direction;
-    
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -31,17 +31,17 @@ struct SpotLight {
     vec3 direction;
     float cutOff;
     float outerCutOff;
-    
+
     float constant;
     float linear;
     float quadratic;
-    
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
 };
 
-#define NR_POINT_LIGHTS 4
+#define NR_POINT_LIGHTS 7
 
 in VS_OUT {
     vec3 fragPosition;
@@ -67,9 +67,9 @@ void main()
     vec3 result;
     vec3 viewDir = normalize(viewPos - fs_in.fragPosition);
     vec3 norm = normalize(fs_in.Normal);
-    
+
     result = CalcDirLight(dirLight, material, norm, viewDir);
-    
+
     for(int i = 0; i < NR_POINT_LIGHTS; i++)
         result += CalcPointLight(pointLights[i], material, norm, fs_in.fragPosition, viewDir);
     result += CalcSpotLight(spotLight, norm, fs_in.fragPosition, viewDir);
