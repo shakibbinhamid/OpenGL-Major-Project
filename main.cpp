@@ -45,6 +45,10 @@ glm::vec3 pointLampPos[] = {
     glm::vec3(2.5f, 0.50f, 2.8f)
 };
 
+glm::vec3 spotLampPos[] = {
+    glm::vec3(2.5f, 0.95f, -7.5f)
+};
+
 // Window dimensions
 GLuint WIDTH = 800, HEIGHT = 600;
 GLFWwindow* window = nullptr;
@@ -73,7 +77,7 @@ void setDirLightUniforms(Shader shader, string dirLightNr, glm::vec3 sunPos, glm
     glUniform3f(glGetUniformLocation(shader.Program, (dirLightNr + ".specular").c_str()), spec.x, spec.y, spec.z);
 }
 
-void setLampUniforms(Shader shader, string lampNr, glm::vec3 lampPos, glm::vec3 ambient, glm::vec3 diff, glm::vec3 spec){
+void setPointLampUniforms(Shader shader, string lampNr, glm::vec3 lampPos, glm::vec3 ambient, glm::vec3 diff, glm::vec3 spec){
     // light variables
     glUniform3f(glGetUniformLocation(shader.Program, (lampNr + ".position").c_str()), lampPos.x, lampPos.y, lampPos.z);
     glUniform3f(glGetUniformLocation(shader.Program, (lampNr + ".ambient").c_str()), ambient.x, ambient.y, ambient.z);
@@ -86,12 +90,35 @@ void setLampUniforms(Shader shader, string lampNr, glm::vec3 lampPos, glm::vec3 
     glUniform1f(glGetUniformLocation(shader.Program, (lampNr + ".quadratic").c_str()), ATTEN_QUAD);
 }
 
-void turnOffLamp(Shader shader, string lampNr, glm::vec3 lampPos){
-    setLampUniforms(shader, lampNr, lampPos, glm::vec3(), glm::vec3(), glm::vec3());
+void setSpotLampUniforms(Shader shader, string lampNr, glm::vec3 lampPos, glm::vec3 dir, glm::vec3 ambient, glm::vec3 diff, glm::vec3 spec){
+    glUniform3f(glGetUniformLocation(shader.Program, "spotLight.position"), lampPos.x, lampPos.y, lampPos.z);
+    glUniform3f(glGetUniformLocation(shader.Program, "spotLight.direction"), dir.x, dir.y, dir.z);
+    glUniform3f(glGetUniformLocation(shader.Program, "spotLight.ambient"), ambient.x, ambient.y, ambient.z);
+    glUniform3f(glGetUniformLocation(shader.Program, "spotLight.diffuse"), diff.x, diff.y, diff.z);
+    glUniform3f(glGetUniformLocation(shader.Program, "spotLight.specular"), spec.x, spec.y, spec.z);
+    
+    glUniform1f(glGetUniformLocation(shader.Program, "spotLight.constant"), ATTEN_CONST);
+    glUniform1f(glGetUniformLocation(shader.Program, "spotLight.linear"), ATTEN_LIN);
+    glUniform1f(glGetUniformLocation(shader.Program, "spotLight.quadratic"), ATTEN_QUAD);
+    
+    glUniform1f(glGetUniformLocation(shader.Program, "spotLight.cutOff"), glm::cos(glm::radians(40.5f)));
+    glUniform1f(glGetUniformLocation(shader.Program, "spotLight.outerCutOff"), glm::cos(glm::radians(50.0f)));
 }
 
-void turnOnLamp(Shader shader, string lampNr, glm::vec3 lampPos){
-    setLampUniforms(shader, lampNr, lampPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.10f, 0.10f, 0.10f), glm::vec3(1.0f, 1.0f, 1.0f));
+void turnOffPointLamp(Shader shader, string lampNr, glm::vec3 lampPos){
+    setPointLampUniforms(shader, lampNr, lampPos, glm::vec3(), glm::vec3(), glm::vec3());
+}
+
+void turnOnPointLamp(Shader shader, string lampNr, glm::vec3 lampPos){
+    setPointLampUniforms(shader, lampNr, lampPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.10f, 0.10f, 0.10f), glm::vec3(1.0f, 1.0f, 1.0f));
+}
+
+void turnOffSpotLamp(Shader shader, string lampNr, glm::vec3 lampPos){
+    setSpotLampUniforms(shader, lampNr, lampPos, glm::vec3(), glm::vec3(), glm::vec3(), glm::vec3());
+}
+
+void turnOnSpotLamp(Shader shader, string lampNr, glm::vec3 lampPos){
+    setSpotLampUniforms(shader, lampNr, lampPos, glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.00f, 1.00f, 1.00f), glm::vec3(1.0f, 1.0f, 1.0f));
 }
 
 void turnOnSun(Shader shader, string lampNr, glm::vec3 sunPos){
@@ -130,6 +157,14 @@ void drawStreetLamp(Shader shader, Model lamp, glm::vec3 pos){
     drawModel(shader, lamp, glm::vec3(pos.x + LAMP_MODEL_X_OFFSET, pos.y, pos.z), glm::vec3(0.05f));
 }
 
+void drawBus(Shader shader, Model bus, glm::vec3 pos){
+    drawModel(shader, bus, pos, glm::vec3(0.3f));
+}
+
+void drawDebris(Shader shader, Model bus, glm::vec3 pos){
+    drawModel(shader, bus, pos, glm::vec3(0.05f));
+}
+
 void drawEnvironment(Shader shader, Model env, glm::vec3 pos){
     drawModel(shader, env, pos, glm::vec3(0.2f));
 }
@@ -145,7 +180,7 @@ void drawSun(Shader sunShader, Mesh sun, glm::mat4 projection, glm::mat4 view, g
 //----------------------------------- complete scene render method ---------------------------------//
 void sceneRender(Shader shader, Shader sunShader,
                  glm::mat4 projection, glm::mat4 view,
-                 Model env, Model lamp, Model road,
+                 Model env, Model lamp, Model road, Model bus, Model debris,
                  Mesh floor, Mesh sun){
     shader.Use();
     glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -160,20 +195,24 @@ void sceneRender(Shader shader, Shader sunShader,
         // turn on the sun
         turnOnSun(shader, "dirLight", sunPos);
         
+        turnOffSpotLamp(shader, "spotlight", spotLampPos[0]);
+        
         // turn off street lamps
-        turnOffLamp(shader, "pointLights[0]", pointLampPos[0]);
-        turnOffLamp(shader, "pointLights[1]", pointLampPos[1]);
-        turnOffLamp(shader, "pointLights[2]", pointLampPos[2]);
-        turnOffLamp(shader, "pointLights[3]", pointLampPos[3]);
+        turnOffPointLamp(shader, "pointLights[0]", pointLampPos[0]);
+        turnOffPointLamp(shader, "pointLights[1]", pointLampPos[1]);
+        turnOffPointLamp(shader, "pointLights[2]", pointLampPos[2]);
+        turnOffPointLamp(shader, "pointLights[3]", pointLampPos[3]);
     } else {
         // turn off the sun
         turnOffSun(shader, "dirLight", sunPos);
         
+        turnOnSpotLamp(shader, "spotlight", spotLampPos[0]);
+        
         // turn on the street lamps
-        turnOnLamp(shader, "pointLights[0]", pointLampPos[0]);
-        turnOnLamp(shader, "pointLights[1]", pointLampPos[1]);
-        turnOnLamp(shader, "pointLights[2]", pointLampPos[2]);
-        turnOnLamp(shader, "pointLights[3]", pointLampPos[3]);
+        turnOnPointLamp(shader, "pointLights[0]", pointLampPos[0]);
+        turnOnPointLamp(shader, "pointLights[1]", pointLampPos[1]);
+        turnOnPointLamp(shader, "pointLights[2]", pointLampPos[2]);
+        turnOnPointLamp(shader, "pointLights[3]", pointLampPos[3]);
     }
     // environment
     drawEnvironment(shader, env, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -184,8 +223,12 @@ void sceneRender(Shader shader, Shader sunShader,
     drawStreetLamp(shader, lamp, glm::vec3(pointLampPos[1].x, 0.0f, pointLampPos[1].z));
     drawStreetLamp(shader, lamp, glm::vec3(pointLampPos[2].x, 0.0f, pointLampPos[2].z));
     drawStreetLamp(shader, lamp, glm::vec3(pointLampPos[3].x, 0.0f, pointLampPos[3].z));
+    
+    drawDebris(shader, debris, glm::vec3(1.0f, 0.0f, -8.5f));
     // tree
-    drawModel(shader, road, glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.2f));
+    //drawModel(shader, road, glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.2f));
+    
+    //drawBus(shader, bus, glm::vec3(0.0f, 0.5f, 0.0f));
     
     // the sun
     drawSun(sunShader, sun, projection, view, sunPos);
@@ -216,6 +259,8 @@ int main() {
     Model env("models/environment/Street environment_V01.obj", "Houses");
     Model straightLamp("models/streetlamp/streetlamp.obj", "Straight Lamps");
     Model road("models/Tree/Tree.obj", "Tree");
+    Model bus("models/bus/Senior Midi.obj", "Bus");
+    Model debris("models/debris/Item01.obj", "Debris");
     Mesh sun = generateUVSphere(50, 50, 2.00, "sun");
     sun.addTextureFromFile("images/sunmap.jpg",
                            "material.texture_diffuse");
@@ -227,13 +272,13 @@ int main() {
     
     // ---------------------------------------------------------------------------------//
     vector<const GLchar*> faces;
-    faces.push_back("models/mp_pr/pr_ft.tga");
-    faces.push_back("models/mp_pr/pr_bk.tga");
-    faces.push_back("models/mp_pr/pr_up.tga");
-    faces.push_back("models/mp_pr/pr_dn.tga");
-    faces.push_back("models/mp_pr/pr_rt.tga");
-    faces.push_back("models/mp_pr/pr_lf.tga");
-
+    faces.push_back("/Users/shakib-binhamid/Downloads/mp_pr/pr_ft.tga");
+    faces.push_back("/Users/shakib-binhamid/Downloads/mp_pr/pr_bk.tga");
+    faces.push_back("/Users/shakib-binhamid/Downloads/mp_pr/pr_up.tga");
+    faces.push_back("/Users/shakib-binhamid/Downloads/mp_pr/pr_dn.tga");
+    faces.push_back("/Users/shakib-binhamid/Downloads/mp_pr/pr_rt.tga");
+    faces.push_back("/Users/shakib-binhamid/Downloads/mp_pr/pr_lf.tga");
+    
     Skybox cityscape(faces, "Cityscape");
     
     //----------------------------------- Game loop ---------------------------------------------------------------/
@@ -260,7 +305,7 @@ int main() {
         
         sceneRender(shader, sunShader,
                     projection, view,
-                    env, straightLamp, road,
+                    env, straightLamp, road, bus, debris,
                     floor, sun);
         
         cityscape.draw(skyboxShader);
