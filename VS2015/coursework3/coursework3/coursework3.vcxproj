@@ -71,6 +71,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir)..\..\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\lib\WIN32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -96,6 +98,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;assimp.lib;BulletDynamics_vs2010.lib;BulletCollision_vs2010.lib;LinearMath_vs2010.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -152,6 +155,25 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\gl_util.cpp" />
     <ClCompile Include="..\..\..\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\camera.hpp" />
+    <ClInclude Include="..\..\..\include\gl_util.hpp" />
+    <ClInclude Include="..\..\..\include\mesh.hpp" />
+    <ClInclude Include="..\..\..\include\mesh_generator.hpp" />
+    <ClInclude Include="..\..\..\include\model.hpp" />
+    <ClInclude Include="..\..\..\include\PhysicsWorld.hpp" />
+    <ClInclude Include="..\..\..\include\shader.hpp" />
+    <ClInclude Include="..\..\..\include\skybox.hpp" />
+    <ClInclude Include="..\..\..\main.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\shaders\shader.frag" />
+    <None Include="..\..\..\shaders\shader.vs" />
+    <None Include="..\..\..\shaders\skybox.frag" />
+    <None Include="..\..\..\shaders\skybox.vs" />
+    <None Include="..\..\..\shaders\sun.frag" />
+    <None Include="..\..\..\shaders\sun.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

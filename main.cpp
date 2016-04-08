@@ -22,6 +22,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <bullet/btBulletDynamicsCommon.h>
 #include "stb_image.h"
 #include "shader.hpp"
 #include "camera.hpp"
@@ -29,11 +30,13 @@
 #include "model.hpp"
 #include "mesh_generator.hpp"
 #include "skybox.hpp"
+#include "PhysicsWorld.hpp"
+#include "main.h"
 
-const GLfloat ATTEN_CONST = 1.0;
-const GLfloat ATTEN_LIN   = 0.009;
-const GLfloat ATTEN_QUAD  = 0.0032;
-const GLfloat LAMP_MODEL_X_OFFSET = 0.1;
+const GLfloat ATTEN_CONST = 1.0f;
+const GLfloat ATTEN_LIN   = 0.009f;
+const GLfloat ATTEN_QUAD  = 0.0032f;
+const GLfloat LAMP_MODEL_X_OFFSET = 0.1f;
 
 //------------------------------------------------- globals -------------------------------------------------------------------------------------------------------------------------------------------/
 
@@ -46,6 +49,14 @@ glm::vec3 pointLampPos[] = {
     glm::vec3(-3.0f, 0.5f, -7.8f),
     glm::vec3(-7.2f, 0.5f, -2.5f),
     glm::vec3(8.0f, 0.5f, 1.8f),
+};
+
+glm::vec3 treePos[] = {
+	glm::vec3(4.5f, 0.0f, 1.8f),
+	glm::vec3(7.0f, 0.0f, 1.8f),
+	glm::vec3(-6.0f, 0.0f, 1.8f),
+	glm::vec3(-2.5f, 0.0f, 5.0f),
+	glm::vec3(-3.5f, 0.0f, 9.0f)
 };
 
 glm::vec3 spotLampPos[] = {
@@ -69,7 +80,7 @@ GLint slices = 100;
 GLfloat radius = 1.0f;
 
 
-//------------------------------------------------- helper methods --------------------------------------------------------------------------------------------------------------------------------------------/
+//------------------------------------------------- bullet methods --------------------------------------------------------------------------------------------------------------------------------------------/
 
 //----------------------------------- uniform setter helpers ---------------------------------------------------------------/
 
@@ -191,55 +202,44 @@ void sceneRender(Shader shader, Shader sunShader,
 
     // Set the lighting uniforms
     glUniform3f(glGetUniformLocation(shader.Program, "viewPos"), camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
-    glUniform1f(glGetUniformLocation(shader.Program, "Material.shininess"), 0.05);
+    glUniform1f(glGetUniformLocation(shader.Program, "Material.shininess"), 0.05f);
     // Directional light
     glm::vec3 sunPos = glm::vec3(100 * cos(glfwGetTime()/2), 50 * sin(glfwGetTime()/2), 0.0f);
     if (sunPos.y > 0) {
         // turn on the sun
         turnOnSun(shader, "dirLight", sunPos);
-
+		// turn off the spotlight
         turnOffSpotLamp(shader, "spotlight", spotLampPos[0]);
 
         // turn off street lamps
-        turnOffPointLamp(shader, "pointLights[0]", pointLampPos[0]);
-        turnOffPointLamp(shader, "pointLights[1]", pointLampPos[1]);
-        turnOffPointLamp(shader, "pointLights[2]", pointLampPos[2]);
-        turnOffPointLamp(shader, "pointLights[3]", pointLampPos[3]);
+		for (int i = 0; i < 7; i++) {
+			turnOffPointLamp(shader, string("pointLights[") + to_string(i) + string("]"), pointLampPos[i]);
+		}
     } else {
         // turn off the sun
         turnOffSun(shader, "dirLight", sunPos);
-
+		// turn on the spotlight
         turnOnSpotLamp(shader, "spotlight", spotLampPos[0]);
 
         // turn on the street lamps
-        turnOnPointLamp(shader, "pointLights[0]", pointLampPos[0]);
-        turnOnPointLamp(shader, "pointLights[1]", pointLampPos[1]);
-        turnOnPointLamp(shader, "pointLights[2]", pointLampPos[2]);
-        turnOnPointLamp(shader, "pointLights[3]", pointLampPos[3]);
-        turnOnPointLamp(shader, "pointLights[4]", pointLampPos[4]);
-        turnOnPointLamp(shader, "pointLights[5]", pointLampPos[5]);
-        turnOnPointLamp(shader, "pointLights[6]", pointLampPos[6]);
+		for (int i = 0; i < 7; i++) {
+			turnOnPointLamp(shader, string("pointLights[") + to_string(i) + string("]"), pointLampPos[i]);
+		}
     }
     // environment
     drawEnvironment(shader, env, glm::vec3(0.0f, 0.0f, 0.0f));
     // floor
     drawMesh(shader, floor, glm::vec3(0.0f, 0.015f, 0.0f));
     // street lamps
-    drawStreetLamp(shader, lamp, glm::vec3(pointLampPos[0].x, 0.0f, pointLampPos[0].z));
-    drawStreetLamp(shader, lamp, glm::vec3(pointLampPos[1].x, 0.0f, pointLampPos[1].z));
-    drawStreetLamp(shader, lamp, glm::vec3(pointLampPos[2].x, 0.0f, pointLampPos[2].z));
-    drawStreetLamp(shader, lamp, glm::vec3(pointLampPos[3].x, 0.0f, pointLampPos[3].z));
-    drawStreetLamp(shader, lamp, glm::vec3(pointLampPos[4].x, 0.0f, pointLampPos[4].z));
-    drawStreetLamp(shader, lamp, glm::vec3(pointLampPos[5].x, 0.0f, pointLampPos[5].z));
-    drawStreetLamp(shader, lamp, glm::vec3(pointLampPos[6].x, 0.0f, pointLampPos[6].z));
+	for (int i = 0; i < 7; i++) {
+		drawStreetLamp(shader, lamp, glm::vec3(pointLampPos[i].x, 0.0f, pointLampPos[i].z));
+	}
     // debris
     drawDebris(shader, debris, glm::vec3(1.0f, 0.0f, -8.5f));
     // trees
-    drawModel(shader, tree, glm::vec3(4.5f, 0.0f, 1.8f), glm::vec3(0.2f));
-    drawModel(shader, tree, glm::vec3(7.0f, 0.0f, 1.8f), glm::vec3(0.2f));
-    drawModel(shader, tree, glm::vec3(-6.0f, 0.0f, 1.8f), glm::vec3(0.2f));
-    drawModel(shader, tree, glm::vec3(-2.5f, 0.0f, 5.0f), glm::vec3(0.2f));
-    drawModel(shader, tree, glm::vec3(-3.5f, 0.0f, 9.0f), glm::vec3(0.2f));
+	for (int i = 0; i < 5; i++) {
+		drawModel(shader, tree, treePos[i], glm::vec3(0.2f));
+	}
 
     //drawBus(shader, bus, glm::vec3(0.0f, 0.5f, 0.0f));
 
@@ -283,7 +283,7 @@ int main() {
     floor.addTextureFromFile("images/concrete_spec.jpeg",
                              "material.texture_specular");
 
-    // ---------------------------------------------------------------------------------//
+    // ------------------------------------ Skyboxes ------------------------------------------------------------------//
     vector<const GLchar*> faces;
     faces.push_back("models/mp_pr/pr_ft.tga");
     faces.push_back("models/mp_pr/pr_bk.tga");
@@ -294,12 +294,16 @@ int main() {
 
     Skybox cityscape(faces, "Cityscape");
 
+	// ------------------------------------ Physics ------------------------------------------------------------------//
+
+	Physics physics;
+	physics.addSphere(1, 1, glm::vec3(0, 40, 0));
     //----------------------------------- Game loop ---------------------------------------------------------------/
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
 
-        GLfloat currentFrame = glfwGetTime();
+        GLfloat currentFrame = (GLfloat)glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
