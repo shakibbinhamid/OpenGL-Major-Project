@@ -9,7 +9,8 @@ using namespace std;
 
 class Physics {
 public:
-	Physics() {
+	Physics(int a) {
+		this->a = a;
 		this->createPhysicsWorld(world, GRAVITY);
 	}
 	bool addSide(glm::vec3 norm, glm::vec3 pos, GLfloat coe = COE) {
@@ -40,6 +41,7 @@ public:
 		return positions;
 	}
 private:
+	int a;
 	btDiscreteDynamicsWorld * world;
 	vector<btRigidBody *> walls;
 	vector<btRigidBody *> rigidSpheres;
