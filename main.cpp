@@ -301,6 +301,7 @@ int main() {
 	physics.addSphere("sphere 2", 1, 1, glm::vec3(0, 20, 0));
 	physics.addSphere("sphere 3", 1, 1, glm::vec3(0, 10, 0));
     physics.addSide("floor", glm::vec3(0, 1, 0), glm::vec3(0, 0.015, 0));
+	physics.addBox("House 1", 2, 3.5, 1.715, glm::vec3(3.1, 1.715/2, 4.0));
 	
     //----------------------------------- Game loop ---------------------------------------------------------------/
 

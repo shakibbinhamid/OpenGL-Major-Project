@@ -25,8 +25,8 @@ public:
 		rigidBodies[name] = makeSphere(world, mass, r, pos, velocity, coe);
 		return true;
 	}
-	bool addBox(string name, btDiscreteDynamicsWorld* dynamicsWorld, GLfloat x, GLfloat y, GLfloat z, glm::vec3 pos, GLfloat coe = COE) {
-		rigidBodies[name] = makeBox(dynamicsWorld, x, y, z, pos, coe);
+	bool addBox(string name, GLfloat x, GLfloat y, GLfloat z, glm::vec3 pos, GLfloat coe = COE) {
+		rigidBodies[name] = makeBox(world, x, y, z, pos, coe);
 		return true;
 	}
 	btDiscreteDynamicsWorld * getWorld() {
@@ -127,7 +127,10 @@ private:
 	btRigidBody* makeBox(btDiscreteDynamicsWorld* dynamicsWorld, GLfloat x, GLfloat y, GLfloat z,  glm::vec3 pos, GLfloat coe){
 
 		btBoxShape* boxShape = new btBoxShape(btVector3(x, y, z));
-		btDefaultMotionState* boxMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(pos.x, pos.y, pos.z)));
+		btTransform groundTransform;
+		groundTransform.setIdentity();
+		groundTransform.setOrigin(btVector3(pos.x, pos.y, pos.z));
+		btDefaultMotionState* boxMotionState = new btDefaultMotionState(groundTransform);
 		
 		btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, boxMotionState, boxShape, btVector3(0, 0, 0)); // the rigid body parameters
 		btRigidBody* boxRigidBody = new btRigidBody(groundRigidBodyCI); // define the rigid body
