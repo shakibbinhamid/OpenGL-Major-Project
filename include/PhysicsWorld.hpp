@@ -21,8 +21,12 @@ public:
 		rigidBodies[name] = makeSide(world, norm, pos, coe);
 		return true;
 	}
-    bool addSphere(string name, btScalar mass, GLfloat r, glm::vec3 pos, glm::vec3 velocity = glm::vec3(), GLfloat coe = COE) {
+	bool addSphere(string name, btScalar mass, GLfloat r, glm::vec3 pos, glm::vec3 velocity = glm::vec3(), GLfloat coe = COE) {
 		rigidBodies[name] = makeSphere(world, mass, r, pos, velocity, coe);
+		return true;
+	}
+	bool addBox(string name, btDiscreteDynamicsWorld* dynamicsWorld, GLfloat x, GLfloat y, GLfloat z, glm::vec3 pos, GLfloat coe = COE) {
+		rigidBodies[name] = makeBox(dynamicsWorld, x, y, z, pos, coe);
 		return true;
 	}
 	btDiscreteDynamicsWorld * getWorld() {
@@ -45,9 +49,9 @@ public:
 		getRigidBody(name)->getMotionState()->getWorldTransform(trans);
 		return glm::vec3(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ());
 	}
-	void shutdown(){
-		for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--){
-		btCollisionObject* obj = world->getCollisionObjectArray()[i];
+	void shutdown() {
+		for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--) {
+			btCollisionObject* obj = world->getCollisionObjectArray()[i];
 			btRigidBody* body = btRigidBody::upcast(obj);
 			if (body && body->getMotionState()) {
 				delete body->getMotionState();
@@ -88,7 +92,7 @@ private:
 		btDiscreteDynamicsWorld * dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
 		dynamicsWorld->setGravity(btVector3(0., gravity, 0));
 
-        return dynamicsWorld;
+		return dynamicsWorld;
 	}
 
 	btRigidBody* makeSide(btDiscreteDynamicsWorld* dynamicsWorld, glm::vec3 norm, glm::vec3 pos, GLfloat coe) {
@@ -104,7 +108,7 @@ private:
 		return groundRigidBody;
 	}
 
-    btRigidBody* makeSphere(btDiscreteDynamicsWorld* dynamicsWorld, GLfloat mass, GLfloat r, glm::vec3 pos, glm::vec3 velocity, GLfloat coe) {
+	btRigidBody* makeSphere(btDiscreteDynamicsWorld* dynamicsWorld, GLfloat mass, GLfloat r, glm::vec3 pos, glm::vec3 velocity, GLfloat coe) {
 
 		btCollisionShape* fallShape = new btSphereShape(r); // create a r radius sphere shape
 		btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(pos.x, pos.y, pos.z))); // position it at right place, no rotation
@@ -118,7 +122,20 @@ private:
 		dynamicsWorld->addRigidBody(fallRigidBody);
 
 		return fallRigidBody;
+	}
 
+	btRigidBody* makeBox(btDiscreteDynamicsWorld* dynamicsWorld, GLfloat x, GLfloat y, GLfloat z,  glm::vec3 pos, GLfloat coe){
+
+		btBoxShape* boxShape = new btBoxShape(btVector3(x, y, z));
+		btDefaultMotionState* boxMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(pos.x, pos.y, pos.z)));
+		
+		btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, boxMotionState, boxShape, btVector3(0, 0, 0)); // the rigid body parameters
+		btRigidBody* boxRigidBody = new btRigidBody(groundRigidBodyCI); // define the rigid body
+
+		boxRigidBody->setRestitution(coe);
+		dynamicsWorld->addRigidBody(boxRigidBody);
+
+		return boxRigidBody;
 	}
 };
 
