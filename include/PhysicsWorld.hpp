@@ -4,47 +4,51 @@
 #include <bullet/btBulletDynamicsCommon.h>
 #include "world.h"
 #include <vector>
+#include <map>
 
 using namespace std;
 
 class Physics {
 public:
-	Physics(int a) {
-		this->a = a;
+	Physics() {
 		world = createPhysicsWorld(GRAVITY);
-	}
-	bool addSide(glm::vec3 norm, glm::vec3 pos, GLfloat coe = COE) {
-		walls.push_back(makeSide(world, norm, pos, coe));
-		return true;
-	}
-    bool addSphere(btScalar mass, GLfloat r, glm::vec3 pos, glm::vec3 velocity = glm::vec3(), GLfloat coe = COE) {
-		rigidSpheres.push_back(makeSphere(world, mass, r, pos, velocity, coe));
-		return true;
 	}
 	bool simulate() {
 		world->stepSimulation(1 / 60.f, 10);
 		return true;
 	}
+	bool addSide(string name, glm::vec3 norm, glm::vec3 pos, GLfloat coe = COE) {
+		rigidBodies[name] = makeSide(world, norm, pos, coe);
+		return true;
+	}
+    bool addSphere(string name, btScalar mass, GLfloat r, glm::vec3 pos, glm::vec3 velocity = glm::vec3(), GLfloat coe = COE) {
+		rigidBodies[name] = makeSphere(world, mass, r, pos, velocity, coe);
+		return true;
+	}
 	btDiscreteDynamicsWorld * getWorld() {
 		return world;
 	}
-	vector<btRigidBody *> getSpheres() {
-		return rigidSpheres;
+	map<string, btRigidBody *> getAllRigidbodies() {
+		return rigidBodies;
 	}
-	vector<glm::vec3> getSpherePositions() {
+	btRigidBody * getRigidBody(string name) {
+		return rigidBodies[name];
+	}
+	vector<glm::vec3> getRigidBodyPositions(vector<string> names) {
 		vector<glm::vec3> positions;
-		btTransform trans;
-		for (GLuint i = 0; i < rigidSpheres.size(); i++) {
-			rigidSpheres[i]->getMotionState()->getWorldTransform(trans);
-			positions.push_back(glm::vec3(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ()));
+		for (GLuint i = 0; i < names.size(); i++) {
+			positions.push_back(getRigidBodyPosition(names[i]));
 		}
 		return positions;
 	}
+	glm::vec3 getRigidBodyPosition(string name) {
+		getRigidBody(name)->getMotionState()->getWorldTransform(trans);
+		return glm::vec3(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ());
+	}
 private:
-	int a;
 	btDiscreteDynamicsWorld * world;
-	vector<btRigidBody *> walls;
-	vector<btRigidBody *> rigidSpheres;
+	map<string, btRigidBody *> rigidBodies;
+	btTransform trans;
 
 	btDiscreteDynamicsWorld * createPhysicsWorld(GLfloat gravity = GRAVITY) {
 

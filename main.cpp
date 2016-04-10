@@ -296,9 +296,12 @@ int main() {
 
 	// ------------------------------------ Physics ------------------------------------------------------------------//
 
-	Physics physics(3);
-    physics.addSphere(1, 1, glm::vec3(0, 40, 0));
-    physics.addSide(glm::vec3(0, 1, 0), glm::vec3(0, 0.015, 0));
+	Physics physics;
+    physics.addSphere("sphere 1", 1, 1, glm::vec3(0, 40, 0));
+	physics.addSphere("sphere 2", 1, 1, glm::vec3(0, 20, 0));
+	physics.addSphere("sphere 3", 1, 1, glm::vec3(0, 10, 0));
+    physics.addSide("floor", glm::vec3(0, 1, 0), glm::vec3(0, 0.015, 0));
+	
     //----------------------------------- Game loop ---------------------------------------------------------------/
 
     // Main loop
