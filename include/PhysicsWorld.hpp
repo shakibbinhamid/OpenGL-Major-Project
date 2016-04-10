@@ -45,10 +45,37 @@ public:
 		getRigidBody(name)->getMotionState()->getWorldTransform(trans);
 		return glm::vec3(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ());
 	}
+	void shutdown(){
+		for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--){
+		btCollisionObject* obj = world->getCollisionObjectArray()[i];
+			btRigidBody* body = btRigidBody::upcast(obj);
+			if (body && body->getMotionState()) {
+				delete body->getMotionState();
+			}
+			world->removeCollisionObject(obj);
+			delete obj;
+		}
+		//for (int j = 0; j <mCollisionShapes.size(); j++)
+		//{
+		//	btCollisionShape* shape = mCollisionShapes[j];
+		//	delete shape;
+		//}
+		//mCollisionShapes.clear();
+		delete world;
+		delete solver;
+		delete broadphase;
+		delete dispatcher;
+		delete collisionConfiguration;
+	}
 private:
 	btDiscreteDynamicsWorld * world;
 	map<string, btRigidBody *> rigidBodies;
 	btTransform trans;
+
+	btBroadphaseInterface * broadphase;
+	btDefaultCollisionConfiguration* collisionConfiguration;
+	btCollisionDispatcher* dispatcher;
+	btSequentialImpulseConstraintSolver* solver;
 
 	btDiscreteDynamicsWorld * createPhysicsWorld(GLfloat gravity = GRAVITY) {
 

@@ -277,7 +277,7 @@ int main() {
     Mesh sun = generateUVSphere(50, 50, 2.00, "sun");
     sun.addTextureFromFile("images/sunmap.jpg",
                            "material.texture_diffuse");
-    Mesh floor = generateRectangularFloor(20, 20, 0, "roads");
+    Mesh floor = generateRectangularFloor(20.0, 20.0, 0, "roads");
     floor.addTextureFromFile("images/concrete.jpg",
                            "material.texture_diffuse");
     floor.addTextureFromFile("images/concrete_spec.jpeg",
@@ -336,6 +336,7 @@ int main() {
     }
     // Terminate GLFW
     glfwDestroyWindow(window);
+	physics.shutdown();
     glfwTerminate();
     return EXIT_SUCCESS;
 }
