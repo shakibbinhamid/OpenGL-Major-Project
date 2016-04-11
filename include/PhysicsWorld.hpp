@@ -2,6 +2,7 @@
 #define PhysicsWorld_h
 
 #include <bullet/btBulletDynamicsCommon.h>
+#include <bullet/BulletCollision/CollisionShapes/btShapeHull.h>
 #include "world.h"
 #include "mesh.hpp"
 #include "model.hpp"
@@ -29,6 +30,13 @@ public:
 	}
 	bool addBox(string name, GLfloat x, GLfloat y, GLfloat z, glm::vec3 pos, GLfloat coe = COE) {
 		rigidBodies[name] = makeBox(world, x, y, z, pos, coe);
+		return true;
+	}
+	bool addModel(Model model, glm::vec3 pos, GLfloat coe = COE) {
+		for (int i = 0; i < model.getMeshes().size(); i++) {
+			Mesh mesh = model.getMeshes()[i];
+			rigidBodies[mesh.getName() + to_string(i)] = makeOptimisedStaticConvexHullShape(world, mesh, pos, coe);
+		}
 		return true;
 	}
 	btDiscreteDynamicsWorld * getWorld() {
@@ -141,6 +149,29 @@ private:
 		dynamicsWorld->addRigidBody(boxRigidBody);
 
 		return boxRigidBody;
+	}
+
+	btRigidBody* makeOptimisedStaticConvexHullShape(btDiscreteDynamicsWorld* dynamicsWorld, Mesh mesh, glm::vec3 pos, GLfloat coe) {
+		btConvexHullShape * unoptimisedCVXHullShape = new btConvexHullShape();
+
+		for (int i = 0; i < mesh.vertices.size(); i++) {
+			Vertex v = mesh.vertices[i];
+			unoptimisedCVXHullShape->addPoint(btVector3(v.position.x * 0.215, v.position.y * 0.215, v.position.z * 0.215));
+		}
+		
+		btShapeHull* hull = new btShapeHull(unoptimisedCVXHullShape);
+		btScalar margin = unoptimisedCVXHullShape->getMargin();
+		hull->buildHull(margin);
+		btConvexHullShape* simplifiedConvexShape = new btConvexHullShape((btScalar*)hull->getVertexPointer(), hull->numVertices());
+
+		btDefaultMotionState* motionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(pos.x, pos.y, pos.z))); // no rotation, located at the right place
+		btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, motionState, simplifiedConvexShape, btVector3(0, 0, 0)); // the rigid body parameters
+		btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI); // define the rigid body
+
+		groundRigidBody->setRestitution(coe);
+		dynamicsWorld->addRigidBody(groundRigidBody); // add to the world
+
+		return groundRigidBody;
 	}
 };
 

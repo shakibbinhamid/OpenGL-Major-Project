@@ -330,16 +330,17 @@ int main() {
 	// ------------------------------------ Physics ------------------------------------------------------------------//
 
 	Physics physics;
+	physics.addModel(env, glm::vec3(0.0f, -1.0f, 0.0f));
 
-    physics.addSphere("sphere 1", 1, 1, glm::vec3(0, 40, 0));
-	physics.addSphere("sphere 2", 1, 1, glm::vec3(0, 20, 0));
-	physics.addSphere("sphere 3", 1, 1, glm::vec3(0, 10, 0));
-    physics.addSide("floor", glm::vec3(0, 1, 0), glm::vec3(0, 0.015, 0));
-	//physics.addBox("House 1", 2, 3.5, 1.715, glm::vec3(3.1, 1.715/2, 4.0));
+ //   physics.addSphere("sphere 1", 1, 1, glm::vec3(0, 40, 0));
+	//physics.addSphere("sphere 2", 1, 1, glm::vec3(0, 20, 0));
+	//physics.addSphere("sphere 3", 1, 1, glm::vec3(0, 10, 0));
+ //   physics.addSide("floor", glm::vec3(0, 1, 0), glm::vec3(0, 0.015, 0));
+	////physics.addBox("House 1", 2, 3.5, 1.715, glm::vec3(3.1, 1.715/2, 4.0));
 
-	for (int i = 0; i < HOUSE_NUMBER; i++) {
-		physics.addBox("House " + to_string(i), houseSizes[i][0], houseSizes[i][1], houseSizes[i][2], housePos[i]);
-	}
+	//for (int i = 0; i < HOUSE_NUMBER; i++) {
+	//	physics.addBox("House " + to_string(i), houseSizes[i][0], houseSizes[i][1], houseSizes[i][2], housePos[i]);
+	//}
 	
     //----------------------------------- Game loop ---------------------------------------------------------------/
 
