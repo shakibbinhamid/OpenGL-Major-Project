@@ -3,6 +3,8 @@
 
 #include <bullet/btBulletDynamicsCommon.h>
 #include "world.h"
+#include "mesh.hpp"
+#include "model.hpp"
 #include <vector>
 #include <map>
 
@@ -124,14 +126,14 @@ private:
 		return fallRigidBody;
 	}
 
-	btRigidBody* makeBox(btDiscreteDynamicsWorld* dynamicsWorld, GLfloat x, GLfloat y, GLfloat z,  glm::vec3 pos, GLfloat coe){
+	btRigidBody* makeBox(btDiscreteDynamicsWorld* dynamicsWorld, GLfloat x, GLfloat y, GLfloat z, glm::vec3 pos, GLfloat coe) {
 
 		btBoxShape* boxShape = new btBoxShape(btVector3(x, y, z));
 		btTransform groundTransform;
 		groundTransform.setIdentity();
 		groundTransform.setOrigin(btVector3(pos.x, pos.y, pos.z));
 		btDefaultMotionState* boxMotionState = new btDefaultMotionState(groundTransform);
-		
+
 		btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, boxMotionState, boxShape, btVector3(0, 0, 0)); // the rigid body parameters
 		btRigidBody* boxRigidBody = new btRigidBody(groundRigidBodyCI); // define the rigid body
 

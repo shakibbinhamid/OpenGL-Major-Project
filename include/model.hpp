@@ -12,8 +12,6 @@
 
 using namespace std;
 
-GLint TextureFromFile(const char* path, string directory);
-
 class Model {
 public:
     // Constructor, expects a filepath to a 3D model.
@@ -30,6 +28,10 @@ public:
         for(GLuint i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
     }
+
+	vector<Mesh> getMeshes() {
+		return meshes;
+	}
     
 private:
     /*  Model Data  */

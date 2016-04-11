@@ -37,6 +37,7 @@ const GLfloat ATTEN_CONST = 1.0f;
 const GLfloat ATTEN_LIN   = 0.009f;
 const GLfloat ATTEN_QUAD  = 0.0032f;
 const GLfloat LAMP_MODEL_X_OFFSET = 0.1f;
+const GLuint HOUSE_NUMBER = 11;
 
 //------------------------------------------------- globals -------------------------------------------------------------------------------------------------------------------------------------------/
 
@@ -61,6 +62,38 @@ glm::vec3 treePos[] = {
 
 glm::vec3 spotLampPos[] = {
     glm::vec3(2.5f, 0.95f, -7.5f)
+};
+
+GLfloat houseSizes[HOUSE_NUMBER][3] = {
+	{ 2, 3.5, 1.715 },
+	{ 4.4, 1.715, 3.5 },
+	{ 1.4, 2.015, 3.0 },
+	{ 5.0, 2.015, 2.5 },
+
+	{ 2.0, 1.015, 3.3 },
+	{ 2.0, 1.015, 3.3 },
+	{ 2.0, 1.015, 3.3 },
+	{ 2.7, 1.015, 2.1 },
+	{ 2.1, 1.015, 2.7 },
+	{ 0.9, 0.5515, 1.4 },
+
+	{ 2.0, 1.115, 4.6 }
+};
+
+glm::vec3 housePos[HOUSE_NUMBER] = {
+	glm::vec3(3.1, 0.8575, 4.0),
+	glm::vec3(7.3, 0.8575, 3.2),
+	glm::vec3(2.8, 1.0075, 7.85),
+	glm::vec3(6.9, 1.0075, 7.85),
+
+	glm::vec3(3.2, 0.5075, -7.5),
+	glm::vec3(6.0, 0.5075, -7.5),
+	glm::vec3(8.4, 0.5075, -7.5),
+	glm::vec3(3.55, 0.5075, -4.0),
+	glm::vec3(6.15, 0.5075, 2.7),
+	glm::vec3(8.2, 0.27575, -3.7),
+
+	glm::vec3(-4.0, 0.5575, -5.3)
 };
 
 // Window dimensions
@@ -277,8 +310,8 @@ int main() {
     Mesh sun = generateUVSphere(50, 50, 2.00, "sun");
     sun.addTextureFromFile("images/sunmap.jpg",
                            "material.texture_diffuse");
-    Mesh floor = generateRectangularFloor(20.0, 20.0, 0, "roads");
-    floor.addTextureFromFile("images/concrete.jpg",
+	Mesh floor = generateRectangularFloor(20.0, 20.0, 0, "roads");
+	floor.addTextureFromFile("images/concrete.jpg",
                            "material.texture_diffuse");
     floor.addTextureFromFile("images/concrete_spec.jpeg",
                              "material.texture_specular");
@@ -297,11 +330,16 @@ int main() {
 	// ------------------------------------ Physics ------------------------------------------------------------------//
 
 	Physics physics;
+
     physics.addSphere("sphere 1", 1, 1, glm::vec3(0, 40, 0));
 	physics.addSphere("sphere 2", 1, 1, glm::vec3(0, 20, 0));
 	physics.addSphere("sphere 3", 1, 1, glm::vec3(0, 10, 0));
     physics.addSide("floor", glm::vec3(0, 1, 0), glm::vec3(0, 0.015, 0));
-	physics.addBox("House 1", 2, 3.5, 1.715, glm::vec3(3.1, 1.715/2, 4.0));
+	//physics.addBox("House 1", 2, 3.5, 1.715, glm::vec3(3.1, 1.715/2, 4.0));
+
+	for (int i = 0; i < HOUSE_NUMBER; i++) {
+		physics.addBox("House " + to_string(i), houseSizes[i][0], houseSizes[i][1], houseSizes[i][2], housePos[i]);
+	}
 	
     //----------------------------------- Game loop ---------------------------------------------------------------/
 
