@@ -32,7 +32,7 @@ extern GLfloat lastFrame;
 
 bool start_gl ();
 
-void do_movement();
+void do_movement(GLboolean record);
 
 GLint Texture2DFromFile(string filename);
 

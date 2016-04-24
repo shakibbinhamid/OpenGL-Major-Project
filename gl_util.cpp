@@ -93,7 +93,7 @@ GLint getMaxTextureSupported(){
     return max_texture_units;
 }
 
-void do_movement() {
+void do_movement(GLboolean record) {
     // Camera controls
     if(keys[GLFW_KEY_W])
         camera.processMovement(FORWARD, deltaTime);
@@ -104,13 +104,13 @@ void do_movement() {
     if(keys[GLFW_KEY_D])
         camera.processMovement(RIGHT, deltaTime);
     if(keys[GLFW_KEY_UP])
-        camera.processLook(0, 2);
+        camera.processLook(0, 2, record);
     if(keys[GLFW_KEY_DOWN])
-        camera.processLook(0, -2);
+        camera.processLook(0, -2, record);
     if(keys[GLFW_KEY_LEFT])
-        camera.processLook(-2, 0);
+        camera.processLook(-2, 0, record);
     if(keys[GLFW_KEY_RIGHT])
-        camera.processLook(2, 0);
+        camera.processLook(2, 0, record);
 }
 
 /*

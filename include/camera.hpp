@@ -14,10 +14,13 @@
 #pragma once
 
 #include <vector>
+#include <fstream>
 #include <iostream>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#pragma warning (disable : 4996)
 
 using namespace std;
 
@@ -46,7 +49,8 @@ public:
     Camera(glm::vec3 position = DEFAULT_CAMERA_POS,
            glm::vec3 up = DEFAULT_CAMERA_UP,
            GLfloat yaw = DEFAULT_CAMERA_YAW,
-           GLfloat pitch = DEFAULT_CAMERA_PITCH)
+           GLfloat pitch = DEFAULT_CAMERA_PITCH,
+		   const char * tourFile = "tour.txt")
     :   front(DEFAULT_CAMERA_FRONT),
         lookSpeed(DEFAULT_CAMERA_SPEED),
         lookSensitivity(DEFAULT_CAMERA_SENSITIVTY),
@@ -58,6 +62,7 @@ public:
         this->pitch = pitch;
         updateCameraVectors();
         render();
+		this->tourFile = fopen(tourFile, "a");
     }
     // Constructor with scalar values
     Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch)
@@ -73,6 +78,10 @@ public:
         updateCameraVectors();
         render();
     }
+
+	~Camera() {
+		fclose(tourFile);
+	}
     
     // Returns the view matrix calculated using Eular Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix() {
@@ -92,7 +101,11 @@ public:
     }
     
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-    void processLook(GLfloat xoffset, GLfloat yoffset, GLboolean constrainPitch = true) {
+    void processLook(GLfloat xoffset, GLfloat yoffset, GLboolean record = false, GLboolean constrainPitch = true) {
+		if (record) {
+			fprintf(tourFile, "%.2f %.2f\n", xoffset, yoffset);
+		}
+
         xoffset *= lookSensitivity;
         yoffset *= lookSensitivity;
         
@@ -170,6 +183,9 @@ private:
     GLfloat lookSpeed;
     GLfloat lookSensitivity;
     GLfloat zoom;
+
+	// Tour file
+	FILE * tourFile;
     
     // Calculates the front vector from the Camera's (updated) Eular Angles
     void updateCameraVectors() {

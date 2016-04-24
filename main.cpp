@@ -32,6 +32,7 @@
 #include "skybox.hpp"
 #include "PhysicsWorld.hpp"
 #include "main.h"
+#include "tour.hpp"
 
 const GLfloat ATTEN_CONST = 1.0f;
 const GLfloat ATTEN_LIN   = 0.009f;
@@ -341,6 +342,9 @@ int main() {
 	//for (int i = 0; i < HOUSE_NUMBER; i++) {
 	//	physics.addBox("House " + to_string(i), houseSizes[i][0], houseSizes[i][1], houseSizes[i][2], housePos[i]);
 	//}
+
+	Tour t;
+	t.loadTour("tour.txt");
 	
     //----------------------------------- Game loop ---------------------------------------------------------------/
 
@@ -353,7 +357,8 @@ int main() {
 
         // Check if any events have been activated (key pressed, mouse moved)
         glfwPollEvents();
-        do_movement();
+		//t.stepTour(&camera);
+        do_movement(false);
 
         // Clear the color buffer
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
