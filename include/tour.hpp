@@ -10,35 +10,68 @@
 
 using namespace std;
 
-const int MAX_CHARS_PER_LINE = 512;
-const int MAX_TOKENS_PER_LINE = 20;
-const char* const DELIMITER = ",";
-
 class Tour {
 public:
-	Tour() {}
+	Tour(const char * tourFile, const char * initFile) {
+		loadTour(tourFile, initFile);
+		cout << "TOUR LOADED : STEPS = " << cameraParamOffsets.size() << endl;
+	}
 	
-	int loadTour(const char * tourFile) {
-		ifstream fin(tourFile);
-		if (!fin.good())
+	int loadTour(const char * tourFile, const char * initFile) {
+
+		// load tour offsets
+		ifstream tf(tourFile);
+		if (!tf.good())
 			return -1;
-		GLfloat yaw, pitch, posx, posy, posz;
-		while (fin >> yaw >> pitch >> posx >> posy >> posz) {
-			cameraLookOffsets.push_back({ yaw, pitch, posx, posy, posz });
+		GLfloat f, b, l, r, yp, yn, xn, xp;
+		while (tf >> f >> b >> l >> r >> yp >> yn >> xn >> xp) {
+			cameraParamOffsets.push_back({ f, b, l, r, yp, yn, xn, xp });
 		}
 
-		fin.close();
+		tf.close();
+
+		// load init conditions
+		ifstream inf(initFile);
+		if (!inf.good())
+			return -1;
+		GLfloat sp_x, sp_y, sp_z, sd_y, sd_p;
+		while (inf >> sp_x >> sp_y >> sp_z >> sd_y >> sd_p) {
+			start_position = glm::vec3(sp_x, sp_y, sp_z);
+			start_direction = glm::vec2(sd_y, sd_p);
+		}
+
+		inf.close();
 		return 0;
 	}
 
-	void stepTour(Camera * camera) {
+	GLboolean tourLoaded() {
+		return cameraParamOffsets.size() > 0;
+	}
+
+	void restartTour(Camera * camera) {
+		STEP = 0; // reset steps if at the end
+		camera->setUpTour(start_direction.x, start_direction.y, start_position.x, start_position.y, start_position.z);
+
+		cout << "Tour Started" << endl;
+		cout << "CAMERA : POS " << camera->getPosition().x << " " << camera->getPosition().y << " " << camera->getPosition().z << endl;
+	}
+
+	void stepTour(Camera * camera, GLfloat deltaTime) {
+		if (STEP >= cameraParamOffsets.size() || STEP == 0) restartTour(camera);
+
+		camera->stepTour(cameraParamOffsets[STEP][0], cameraParamOffsets[STEP][1], cameraParamOffsets[STEP][2], cameraParamOffsets[STEP][3],
+						 cameraParamOffsets[STEP][4], cameraParamOffsets[STEP][5], cameraParamOffsets[STEP][6], cameraParamOffsets[STEP][7],
+						 deltaTime);
+
 		STEP++;
-		if (STEP >= cameraLookOffsets.size()) {
-			STEP = 0;
-		}
-		camera->processTourStep(cameraLookOffsets[STEP][0], cameraLookOffsets[STEP][1], cameraLookOffsets[STEP][2], cameraLookOffsets[STEP][3], cameraLookOffsets[STEP][4]);
+		
+		// first step is set up
+
+		
 	}
 private:
-	vector<vector<GLfloat>> cameraLookOffsets;
+	vector<vector<GLfloat>> cameraParamOffsets;
+	glm::vec3 start_position, last_position;
+	glm::vec2 start_direction, last_direction;
 	int STEP;
 };

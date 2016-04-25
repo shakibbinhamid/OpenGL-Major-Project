@@ -42,6 +42,9 @@ const glm::vec3 DEFAULT_CAMERA_POS        = glm::vec3(0.0f, 0.0f, 0.0f);
 const glm::vec3 DEFAULT_CAMERA_FRONT      = glm::vec3(0.0f, 0.0f, -1.0f);
 const glm::vec3 DEFAULT_CAMERA_UP         = glm::vec3(0.0f, 1.0f, 0.0f);
 
+const GLfloat CAMERA_X_UNIT_OFFSET = 2;
+const GLfloat CAMERA_Y_UNIT_OFFSET = 2;
+
 // An abstract camera class that processes input and calculates the corresponding Eular Angles, Vectors and Matrices for use in OpenGL
 class Camera {
 public:
@@ -50,7 +53,8 @@ public:
            glm::vec3 up = DEFAULT_CAMERA_UP,
            GLfloat yaw = DEFAULT_CAMERA_YAW,
            GLfloat pitch = DEFAULT_CAMERA_PITCH,
-		   const char * tourFile = "tour.txt")
+		   const char * tourFile = "tourRoute.txt",
+		   const char * tourInitFile = "tourInit.txt")
     :   front(DEFAULT_CAMERA_FRONT),
         lookSpeed(DEFAULT_CAMERA_SPEED),
         lookSensitivity(DEFAULT_CAMERA_SENSITIVTY),
@@ -62,7 +66,8 @@ public:
         this->pitch = pitch;
         updateCameraVectors();
         render();
-		this->tourFile = fopen(tourFile, "a");
+		this->tourRouteFile = fopen(tourFile, "a");
+		this->tourInitFile = fopen(tourInitFile, "a");
     }
     // Constructor with scalar values
     Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch)
@@ -80,7 +85,7 @@ public:
     }
 
 	~Camera() {
-		fclose(tourFile);
+		fclose(tourRouteFile);
 	}
     
     // Returns the view matrix calculated using Eular Angles and the LookAt Matrix
@@ -89,7 +94,7 @@ public:
     }
     
     // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void processMovement(Camera_Movement direction, GLfloat deltaTime, GLboolean record = false) {
+    void processMovement(Camera_Movement direction, GLfloat deltaTime) {
         GLfloat velocity = lookSpeed * deltaTime;
         
         if (direction == FORWARD)   position += front * velocity;
@@ -98,15 +103,12 @@ public:
         if (direction == RIGHT)     position += right * velocity;
         
         //position.y = 0.0f; // to restrict camera movement in xz plane
-
-		// recording
-		if (record) fprintf(tourFile, "%f %f %f %f %f\n", yaw, pitch, position.x, position.y, position.z);
     }
     
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-    void processLook(GLfloat xoffset, GLfloat yoffset, GLboolean record = false, GLboolean constrainPitch = true) {
-        xoffset *= lookSensitivity;
-        yoffset *= lookSensitivity;
+    void processLook(GLfloat xoffset, GLfloat yoffset, GLboolean constrainPitch = true) {
+        xoffset *= CAMERA_X_UNIT_OFFSET * lookSensitivity;
+        yoffset *= CAMERA_Y_UNIT_OFFSET * lookSensitivity;
         
         yaw   += xoffset;
         pitch += yoffset;
@@ -117,19 +119,44 @@ public:
             if (pitch < -89.0f) pitch = -89.0f;
         }
 
-		// recording
-		if (record) fprintf(tourFile, "%f %f %f %f %f\n", yaw, pitch, position.x, position.y, position.z);
-
         // Update Front, Right and Up Vectors using the updated Eular angles
         updateCameraVectors();
     }
 
-	void processTourStep(GLfloat yaw, GLfloat pitch, GLfloat posx, GLfloat posy, GLfloat posz) {
+	void recordTourInit() {
+		fprintf(tourInitFile, "%f %f %f %f %f\n", position.x, position.y, position.z, yaw, pitch);
+	}
+
+	void recordTourStep(GLfloat f, GLfloat b, GLfloat l, GLfloat r, GLfloat yp, GLfloat yn, GLfloat xn, GLfloat xp) {
+		fprintf(tourRouteFile, "%.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n", f, b, l, r, yp, yn, xn, xp);
+	}
+
+	void setUpTour(GLfloat yaw, GLfloat pitch, GLfloat posx, GLfloat posy, GLfloat posz) {
 		this->yaw = yaw;
 		this->pitch = pitch;
 		this->position = glm::vec3(posx, posy, posz);
 
 		updateCameraVectors();
+	}
+
+	void stepTour(GLfloat f, GLfloat b, GLfloat l, GLfloat r, GLfloat up, GLfloat down, GLfloat left, GLfloat right, GLfloat deltaTime) {
+		if (f == 1) processMovement(FORWARD, deltaTime);
+		if (b == 1) processMovement(BACKWARD, deltaTime);
+		if (l == 1) processMovement(LEFT, deltaTime);
+		if (r == 1) processMovement(RIGHT, deltaTime);
+
+		if (up == 1) processLook(0, 1);
+		if (down == 1) processLook(0, -1);
+		if (left == 1) processLook(-1, 0);
+		if (right == 1) processLook(1, 0);
+	}
+
+	GLboolean isRecording() {
+		return recording;
+	}
+
+	void setRecording(GLboolean recording) {
+		this->recording = recording;
 	}
     
     // Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
@@ -195,7 +222,9 @@ private:
     GLfloat zoom;
 
 	// Tour file
-	FILE * tourFile;
+	FILE * tourInitFile;
+	FILE * tourRouteFile;
+	GLboolean recording = false;
     
     // Calculates the front vector from the Camera's (updated) Eular Angles
     void updateCameraVectors() {

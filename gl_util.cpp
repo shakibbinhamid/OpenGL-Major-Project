@@ -13,10 +13,10 @@
 #include "stb_image.h"
 
 GLint max_texture_units;
-Tour t;
+Tour t("tourRoute.txt", "tourInit.txt");
 GLboolean record = false, tourMode = false;
 
-const int toggleKeys[] = { GLFW_KEY_T, GLFW_KEY_R };
+const int toggleKeys[] = { GLFW_KEY_T, GLFW_KEY_V };
 
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
@@ -29,6 +29,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         if(action == GLFW_PRESS)						keys[key] = true;
         else if( !toggleKey && action == GLFW_RELEASE)  keys[key] = false;
     }
+
+	if (key == GLFW_KEY_E) keys[GLFW_KEY_T] = false;
+
+	if (key == GLFW_KEY_R && action == GLFW_PRESS) t.restartTour(&camera);
 }
 
 ////////////////////// GLEW AND GLFW SCAFFOLDING //////////////////////////////////////////////////
@@ -94,33 +98,49 @@ GLint getMaxTextureSupported(){
 
 void do_movement() {
 	tourMode = keys[GLFW_KEY_T];
-	record = keys[GLFW_KEY_R];
+	record = keys[GLFW_KEY_V];
 	if (tourMode) {
-		record = keys[GLFW_KEY_R] = false;
-		t.loadTour("tour.txt");
+		record = keys[GLFW_KEY_V] = false;
+		camera.setRecording(false);
+		//if (!t.tourLoaded()) t.loadTour("tourRoute.txt", "tourInit.txt");
 	}
-	if (record) tourMode = keys[GLFW_KEY_T] = false;
+	if (record) {
+		tourMode = keys[GLFW_KEY_T] = false;
+		if (!camera.isRecording()) {
+			camera.setRecording(true);
+			camera.recordTourInit();
+		}
+	}
 	if (tourMode) {
-		t.stepTour(&camera);
+		t.stepTour(&camera, deltaTime);
 	}
 	else {
 		// Camera controls
 		if (keys[GLFW_KEY_W])
-			camera.processMovement(FORWARD, deltaTime, record);
+			camera.processMovement(FORWARD, deltaTime);
 		if (keys[GLFW_KEY_S])
-			camera.processMovement(BACKWARD, deltaTime, record);
+			camera.processMovement(BACKWARD, deltaTime);
 		if (keys[GLFW_KEY_A])
-			camera.processMovement(LEFT, deltaTime, record);
+			camera.processMovement(LEFT, deltaTime);
 		if (keys[GLFW_KEY_D])
-			camera.processMovement(RIGHT, deltaTime, record);
+			camera.processMovement(RIGHT, deltaTime);
 		if (keys[GLFW_KEY_UP])
-			camera.processLook(0, 2, record);
+			camera.processLook(0, 1);
 		if (keys[GLFW_KEY_DOWN])
-			camera.processLook(0, -2, record);
+			camera.processLook(0, -1);
 		if (keys[GLFW_KEY_LEFT])
-			camera.processLook(-2, 0, record);
+			camera.processLook(-1, 0);
 		if (keys[GLFW_KEY_RIGHT])
-			camera.processLook(2, 0, record);
+			camera.processLook(1, 0);
+		if (camera.isRecording())
+			camera.recordTourStep(keys[GLFW_KEY_W] ? 1 : 0,
+				keys[GLFW_KEY_S] ? 1 : 0,
+				keys[GLFW_KEY_A] ? 1 : 0,
+				keys[GLFW_KEY_D] ? 1 : 0,
+				keys[GLFW_KEY_UP] ? 1 : 0,
+				keys[GLFW_KEY_DOWN] ? 1 : 0,
+				keys[GLFW_KEY_LEFT] ? 1 : 0,
+				keys[GLFW_KEY_RIGHT] ? 1 : 0);
 	}
 }
 
