@@ -31,7 +31,6 @@
 #include "mesh_generator.hpp"
 #include "skybox.hpp"
 #include "PhysicsWorld.hpp"
-#include "main.h"
 
 const GLfloat ATTEN_CONST = 1.0f;
 const GLfloat ATTEN_LIN   = 0.009f;

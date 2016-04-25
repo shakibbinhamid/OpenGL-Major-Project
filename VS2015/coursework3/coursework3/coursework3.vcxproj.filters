@@ -47,7 +47,7 @@
     <ClInclude Include="..\..\..\include\PhysicsWorld.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\main.h">
+    <ClInclude Include="..\..\..\include\tour.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

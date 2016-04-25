@@ -71,7 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)..\..\include;$(SolutionDir)..\..\include\bullet\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\include\bullet;$(SolutionDir)..\..\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\..\lib\WIN32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -99,7 +99,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;assimp.lib;BulletDynamics_vs2010.lib;BulletCollision_vs2010.lib;LinearMath_vs2010.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;assimp.lib;BulletDynamics.lib;BulletCollision.lib;LinearMath.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -167,7 +167,7 @@
     <ClInclude Include="..\..\..\include\PhysicsWorld.hpp" />
     <ClInclude Include="..\..\..\include\shader.hpp" />
     <ClInclude Include="..\..\..\include\skybox.hpp" />
-    <ClInclude Include="..\..\..\main.h" />
+    <ClInclude Include="..\..\..\include\tour.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\shaders\shader.frag" />
