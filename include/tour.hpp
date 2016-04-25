@@ -22,9 +22,9 @@ public:
 		ifstream fin(tourFile);
 		if (!fin.good())
 			return -1;
-		GLfloat x, y;
-		while (fin >> x >> y) {
-			cameraLookOffsets.push_back(glm::vec2(x, y));
+		GLfloat yaw, pitch, posx, posy, posz;
+		while (fin >> yaw >> pitch >> posx >> posy >> posz) {
+			cameraLookOffsets.push_back({ yaw, pitch, posx, posy, posz });
 		}
 
 		fin.close();
@@ -36,9 +36,9 @@ public:
 		if (STEP >= cameraLookOffsets.size()) {
 			STEP = 0;
 		}
-		camera->processLook(cameraLookOffsets[STEP].x, cameraLookOffsets[STEP].y);
+		camera->processTourStep(cameraLookOffsets[STEP][0], cameraLookOffsets[STEP][1], cameraLookOffsets[STEP][2], cameraLookOffsets[STEP][3], cameraLookOffsets[STEP][4]);
 	}
 private:
-	vector<glm::vec2> cameraLookOffsets;
+	vector<vector<GLfloat>> cameraLookOffsets;
 	int STEP;
 };

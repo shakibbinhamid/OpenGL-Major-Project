@@ -1,5 +1,5 @@
 /*****************************************************************************\
- | OpenGL Coursework 1                                                         |
+ | OpenGL Coursework 3                                                         |
  |                                                                             |
  | Email: sh3g12 at soton dot ac dot uk                                        |
  | version 0.0.1                                                               |
@@ -13,12 +13,8 @@
 
 #include <GL/glew.h> /* include GLEW and new version of GL on Windows */
 #include <GLFW/glfw3.h> /* GLFW helper library */
-#include <stdarg.h>
-#include <stdbool.h>
 #include "camera.hpp"
-//#define bool int // for visual studio
-//#define true 1
-//#define false 0
+#include "tour.hpp"
 
 extern GLuint WIDTH;
 extern GLuint HEIGHT;
@@ -32,7 +28,7 @@ extern GLfloat lastFrame;
 
 bool start_gl ();
 
-void do_movement(GLboolean record);
+void do_movement();
 
 GLint Texture2DFromFile(string filename);
 

@@ -89,7 +89,7 @@ public:
     }
     
     // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void processMovement(Camera_Movement direction, GLfloat deltaTime) {
+    void processMovement(Camera_Movement direction, GLfloat deltaTime, GLboolean record = false) {
         GLfloat velocity = lookSpeed * deltaTime;
         
         if (direction == FORWARD)   position += front * velocity;
@@ -98,14 +98,13 @@ public:
         if (direction == RIGHT)     position += right * velocity;
         
         //position.y = 0.0f; // to restrict camera movement in xz plane
+
+		// recording
+		if (record) fprintf(tourFile, "%f %f %f %f %f\n", yaw, pitch, position.x, position.y, position.z);
     }
     
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void processLook(GLfloat xoffset, GLfloat yoffset, GLboolean record = false, GLboolean constrainPitch = true) {
-		if (record) {
-			fprintf(tourFile, "%.2f %.2f\n", xoffset, yoffset);
-		}
-
         xoffset *= lookSensitivity;
         yoffset *= lookSensitivity;
         
@@ -117,10 +116,21 @@ public:
             if (pitch > 89.0f)  pitch = 89.0f;
             if (pitch < -89.0f) pitch = -89.0f;
         }
-        
+
+		// recording
+		if (record) fprintf(tourFile, "%f %f %f %f %f\n", yaw, pitch, position.x, position.y, position.z);
+
         // Update Front, Right and Up Vectors using the updated Eular angles
         updateCameraVectors();
     }
+
+	void processTourStep(GLfloat yaw, GLfloat pitch, GLfloat posx, GLfloat posy, GLfloat posz) {
+		this->yaw = yaw;
+		this->pitch = pitch;
+		this->position = glm::vec3(posx, posy, posz);
+
+		updateCameraVectors();
+	}
     
     // Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void processZoom(GLfloat yoffset) {

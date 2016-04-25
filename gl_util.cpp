@@ -11,16 +11,10 @@
 
 #include "gl_util.hpp"
 #include "stb_image.h"
-#include <stdio.h>
-#include <time.h>
-#include <string.h>
-#include <assert.h>
-#include <algorithm> // for std::find
-#include <iterator> // for std::begin, std::end
-
-using namespace std;
 
 GLint max_texture_units;
+Tour t;
+GLboolean record = false, tourMode = false;
 
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
@@ -93,24 +87,38 @@ GLint getMaxTextureSupported(){
     return max_texture_units;
 }
 
-void do_movement(GLboolean record) {
-    // Camera controls
-    if(keys[GLFW_KEY_W])
-        camera.processMovement(FORWARD, deltaTime);
-    if(keys[GLFW_KEY_S])
-        camera.processMovement(BACKWARD, deltaTime);
-    if(keys[GLFW_KEY_A])
-        camera.processMovement(LEFT, deltaTime);
-    if(keys[GLFW_KEY_D])
-        camera.processMovement(RIGHT, deltaTime);
-    if(keys[GLFW_KEY_UP])
-        camera.processLook(0, 2, record);
-    if(keys[GLFW_KEY_DOWN])
-        camera.processLook(0, -2, record);
-    if(keys[GLFW_KEY_LEFT])
-        camera.processLook(-2, 0, record);
-    if(keys[GLFW_KEY_RIGHT])
-        camera.processLook(2, 0, record);
+void do_movement() {
+	if (keys[GLFW_KEY_T]) {
+		tourMode = !tourMode;
+		record = false;
+		t.loadTour("tour.txt");
+	}
+	if (keys[GLFW_KEY_R]) {
+		tourMode = false;
+		record = !record;
+	}
+	if (tourMode) {
+		t.stepTour(&camera);
+	}
+	else {
+		// Camera controls
+		if (keys[GLFW_KEY_W])
+			camera.processMovement(FORWARD, deltaTime, record);
+		if (keys[GLFW_KEY_S])
+			camera.processMovement(BACKWARD, deltaTime, record);
+		if (keys[GLFW_KEY_A])
+			camera.processMovement(LEFT, deltaTime, record);
+		if (keys[GLFW_KEY_D])
+			camera.processMovement(RIGHT, deltaTime, record);
+		if (keys[GLFW_KEY_UP])
+			camera.processLook(0, 2, record);
+		if (keys[GLFW_KEY_DOWN])
+			camera.processLook(0, -2, record);
+		if (keys[GLFW_KEY_LEFT])
+			camera.processLook(-2, 0, record);
+		if (keys[GLFW_KEY_RIGHT])
+			camera.processLook(2, 0, record);
+	}
 }
 
 /*
