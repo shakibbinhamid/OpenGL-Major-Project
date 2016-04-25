@@ -16,13 +16,18 @@ GLint max_texture_units;
 Tour t;
 GLboolean record = false, tourMode = false;
 
+const int toggleKeys[] = { GLFW_KEY_T, GLFW_KEY_R };
+
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
     if((key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q) && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
+
+	bool toggleKey = std::find(std::begin(toggleKeys), std::end(toggleKeys), key) != std::end(toggleKeys);
+	if (toggleKey && action == GLFW_PRESS) keys[key] = !keys[key];
     else if (key >= 0 && key < 1024) {
-        if(action == GLFW_PRESS)        keys[key] = true;
-        else if(action == GLFW_RELEASE) keys[key] = false;
+        if(action == GLFW_PRESS)						keys[key] = true;
+        else if( !toggleKey && action == GLFW_RELEASE)  keys[key] = false;
     }
 }
 
@@ -88,15 +93,13 @@ GLint getMaxTextureSupported(){
 }
 
 void do_movement() {
-	if (keys[GLFW_KEY_T]) {
-		tourMode = !tourMode;
-		record = false;
+	tourMode = keys[GLFW_KEY_T];
+	record = keys[GLFW_KEY_R];
+	if (tourMode) {
+		record = keys[GLFW_KEY_R] = false;
 		t.loadTour("tour.txt");
 	}
-	if (keys[GLFW_KEY_R]) {
-		tourMode = false;
-		record = !record;
-	}
+	if (record) tourMode = keys[GLFW_KEY_T] = false;
 	if (tourMode) {
 		t.stepTour(&camera);
 	}
