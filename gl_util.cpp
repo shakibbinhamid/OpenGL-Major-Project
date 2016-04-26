@@ -30,9 +30,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         else if( !toggleKey && action == GLFW_RELEASE)  keys[key] = false;
     }
 
-	if (key == GLFW_KEY_E) keys[GLFW_KEY_T] = false;
-
+	if (key == GLFW_KEY_SPACE) keys[GLFW_KEY_T] = false;
 	if (key == GLFW_KEY_R && action == GLFW_PRESS) t.restartTour(&camera);
+	if (key == GLFW_KEY_E) {
+		keys[GLFW_KEY_T] = false;
+		t.stopTour();
+	}
 }
 
 ////////////////////// GLEW AND GLFW SCAFFOLDING //////////////////////////////////////////////////
@@ -102,7 +105,6 @@ void do_movement() {
 	if (tourMode) {
 		record = keys[GLFW_KEY_V] = false;
 		camera.setRecording(false);
-		//if (!t.tourLoaded()) t.loadTour("tourRoute.txt", "tourInit.txt");
 	}
 	if (record) {
 		tourMode = keys[GLFW_KEY_T] = false;

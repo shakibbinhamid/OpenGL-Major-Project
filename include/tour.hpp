@@ -49,11 +49,15 @@ public:
 	}
 
 	void restartTour(Camera * camera) {
-		STEP = 0; // reset steps if at the end
+		stopTour(); // reset steps if at the end
 		camera->setUpTour(start_direction.x, start_direction.y, start_position.x, start_position.y, start_position.z);
 
 		cout << "Tour Started" << endl;
 		cout << "CAMERA : POS " << camera->getPosition().x << " " << camera->getPosition().y << " " << camera->getPosition().z << endl;
+	}
+
+	void stopTour() {
+		STEP = 0;
 	}
 
 	void stepTour(Camera * camera, GLfloat deltaTime) {
