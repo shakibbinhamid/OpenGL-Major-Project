@@ -58,6 +58,7 @@ public:
 
 	void stopTour() {
 		STEP = 0;
+		cout << "Tour stopped" << endl;
 	}
 
 	void stepTour(Camera * camera, GLfloat deltaTime) {
@@ -68,10 +69,6 @@ public:
 						 deltaTime);
 
 		STEP++;
-		
-		// first step is set up
-
-		
 	}
 private:
 	vector<vector<GLfloat>> cameraParamOffsets;

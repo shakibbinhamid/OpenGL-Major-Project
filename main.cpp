@@ -203,8 +203,8 @@ void drawStreetLamp(Shader shader, Model lamp, glm::vec3 pos){
     drawModel(shader, lamp, glm::vec3(pos.x + LAMP_MODEL_X_OFFSET, pos.y, pos.z), glm::vec3(0.05f));
 }
 
-void drawBus(Shader shader, Model bus, glm::vec3 pos){
-    drawModel(shader, bus, pos, glm::vec3(0.3f));
+void drawRobot(Shader shader, Model robot, glm::vec3 pos){
+    drawModel(shader, robot, pos, glm::vec3(0.0025f));
 }
 
 void drawDebris(Shader shader, Model bus, glm::vec3 pos){
@@ -226,7 +226,7 @@ void drawSun(Shader sunShader, Mesh sun, glm::mat4 projection, glm::mat4 view, g
 //----------------------------------- complete scene render method ---------------------------------//
 void sceneRender(Shader shader, Shader sunShader,
                  glm::mat4 projection, glm::mat4 view,
-                 Model env, Model lamp, Model tree, Model bus, Model debris,
+                 Model env, Model lamp, Model tree, Model robot, Model debris,
                  Mesh floor, Mesh sun){
     shader.Use();
     glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -273,7 +273,7 @@ void sceneRender(Shader shader, Shader sunShader,
 		drawModel(shader, tree, treePos[i], glm::vec3(0.2f));
 	}
 
-    //drawBus(shader, bus, glm::vec3(0.0f, 0.5f, 0.0f));
+    drawRobot(shader, robot, glm::vec3(0.0f, 0.0f, 0.0f));
 
     // the sun
     drawSun(sunShader, sun, projection, view, sunPos);
@@ -304,7 +304,7 @@ int main() {
     Model env("models/environment/Street environment_V01.obj", "Houses");
     Model straightLamp("models/streetlamp/streetlamp.obj", "Straight Lamps");
     Model tree("models/Tree/Tree.obj", "Tree");
-    Model bus("models/bus/Senior Midi.obj", "Bus");
+    Model robot("models/BB8/bb8.obj", "Bus");
     Model debris("models/debris/Item01.obj", "Debris");
     Mesh sun = generateUVSphere(50, 50, 2.00, "sun");
     sun.addTextureFromFile("images/sunmap.jpg",
@@ -331,7 +331,6 @@ int main() {
 	Physics physics;
 	physics.addModel(env, glm::vec3(0.0f, -1.0f, 0.0f));
 
- //   physics.addSphere("sphere 1", 1, 1, glm::vec3(0, 40, 0));
 	//physics.addSphere("sphere 2", 1, 1, glm::vec3(0, 20, 0));
 	//physics.addSphere("sphere 3", 1, 1, glm::vec3(0, 10, 0));
  //   physics.addSide("floor", glm::vec3(0, 1, 0), glm::vec3(0, 0.015, 0));
@@ -363,9 +362,11 @@ int main() {
         glm::mat4 projection = glm::perspective(camera.getZoom(), (float)WIDTH/(float)HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
+		physics.simulate();
+
         sceneRender(shader, sunShader,
                     projection, view,
-                    env, straightLamp, tree, bus, debris,
+                    env, straightLamp, tree, robot, debris,
                     floor, sun);
 
         cityscape.draw(skyboxShader);
