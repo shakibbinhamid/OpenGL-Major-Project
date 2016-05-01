@@ -14,9 +14,45 @@
 
 GLint max_texture_units;
 Tour t("tourRoute.txt", "tourInit.txt");
-GLboolean record = false, tourMode = false;
+GLboolean record = false, tourMode = false, godMode = false;
 
-const int toggleKeys[] = { GLFW_KEY_T, GLFW_KEY_V };
+const int toggleKeys[] = { GLFW_KEY_T, GLFW_KEY_V, GLFW_KEY_G };
+
+void printHelp() {
+	cout << "**********************************************************" << endl;
+	cout << "| H \t| Print HELP" << endl;
+	cout << "----------------------------------------------------------" << endl;
+	cout << "| T \t|" << endl;
+	cout << "|\t| Play a tour from start or " << endl;
+	cout << "|\t| Resume a tour after a pause or" << endl;
+	cout << "|\t| Pause a running tour. " << endl;
+	cout << "|\t| Automatically restarts after end." << endl;
+	cout << "----------------------------------------------------------" << endl;
+	cout << "| E \t|" << endl;
+	cout << "|\t| Stop the tour." << endl;
+	cout << "|\t| Leaves camera at current direction and position." << endl;
+	cout << "|\t| Pressing T will start the tour." << endl;
+	cout << "----------------------------------------------------------" << endl;
+	cout << "| SPACE |" << endl;
+	cout << "|\t| Pauses the tour." << endl;
+	cout << "|\t| Same as pressing T during tour" << endl;
+	cout << "|\t| Press T to start the tour from the last tour position" << endl;
+	cout << "----------------------------------------------------------" << endl;
+	cout << "| R \t|" << endl;
+	cout << "|\t| Restart the tour if tour ongoing." << endl;
+	cout << "|\t| If no ongoing tour, then just resets the camera." << endl;
+	cout << "----------------------------------------------------------" << endl;
+	cout << "| W \t| Move forward" << endl;
+	cout << "| A \t| Move left" << endl;
+	cout << "| S \t| Move backwards" << endl;
+	cout << "| D \t| Move right" << endl;
+	cout << "----------------------------------------------------------" << endl;
+	cout << "| LEFT \t| Look left" << endl;
+	cout << "| RIGHT | Look right" << endl;
+	cout << "----------------------------------------------------------" << endl;
+	cout << "| G \t| God Mode Toggle. Fly enabled. Move anywhere." << endl;
+	cout << "**********************************************************" << endl;
+}
 
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
@@ -24,18 +60,28 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         glfwSetWindowShouldClose(window, GL_TRUE);
 
 	bool toggleKey = std::find(std::begin(toggleKeys), std::end(toggleKeys), key) != std::end(toggleKeys);
-	if (toggleKey && action == GLFW_PRESS) keys[key] = !keys[key];
-    else if (key >= 0 && key < 1024) {
+	if (key == GLFW_KEY_SPACE) keys[GLFW_KEY_T] = false;
+	if (toggleKey && action == GLFW_PRESS) {
+		keys[key] = !keys[key];
+		if (key == GLFW_KEY_G && keys[key]) cout << "God mode enabled" << endl;
+		if (key == GLFW_KEY_G && !keys[key]) cout << "God mode disabled" << endl;
+		if ((key == GLFW_KEY_T || key == GLFW_KEY_SPACE) && !keys[GLFW_KEY_T] && !t.isPaused()) {
+			cout << "Tour paused" << endl;
+			t.pauseTour(&camera);
+		} else if ((key == GLFW_KEY_T) && t.isPaused()) {
+			t.resumeTour(&camera);
+			cout << "Resuming Tour" << endl;
+		}
+	} else if (key >= 0 && key < 1024) {
         if(action == GLFW_PRESS)						keys[key] = true;
         else if( !toggleKey && action == GLFW_RELEASE)  keys[key] = false;
     }
-
-	if (key == GLFW_KEY_SPACE) keys[GLFW_KEY_T] = false;
 	if (key == GLFW_KEY_R && action == GLFW_PRESS) t.restartTour(&camera);
 	if (key == GLFW_KEY_E) {
 		keys[GLFW_KEY_T] = false;
 		t.stopTour();
 	}
+	if (key == GLFW_KEY_H && action == GLFW_PRESS) printHelp();
 }
 
 ////////////////////// GLEW AND GLFW SCAFFOLDING //////////////////////////////////////////////////
@@ -104,12 +150,16 @@ GLboolean isTouring() {
 }
 
 void do_movement() {
-	tourMode = keys[GLFW_KEY_T];
-	record = keys[GLFW_KEY_V];
+	// set the states
+	tourMode = keys[GLFW_KEY_T]; // is it touring?
+	record = keys[GLFW_KEY_V]; // is it recording?
+	godMode = keys[GLFW_KEY_G]; // is god mode on?
+	// turn off recording during tour
 	if (tourMode) {
 		record = keys[GLFW_KEY_V] = false;
 		camera.setRecording(false);
 	}
+	// turn off tour during recording
 	if (record) {
 		tourMode = keys[GLFW_KEY_T] = false;
 		if (!camera.isRecording()) {
@@ -117,19 +167,19 @@ void do_movement() {
 			camera.recordTourInit();
 		}
 	}
+	// either step tour or let the user control the camera
 	if (tourMode) {
 		t.stepTour(&camera, deltaTime);
-	}
-	else {
+	} else {
 		// Camera controls
 		if (keys[GLFW_KEY_W])
-			camera.processMovement(FORWARD, deltaTime);
+			camera.processMovement(FORWARD, deltaTime, godMode);
 		if (keys[GLFW_KEY_S])
-			camera.processMovement(BACKWARD, deltaTime);
+			camera.processMovement(BACKWARD, deltaTime, godMode);
 		if (keys[GLFW_KEY_A])
-			camera.processMovement(LEFT, deltaTime);
+			camera.processMovement(LEFT, deltaTime, godMode);
 		if (keys[GLFW_KEY_D])
-			camera.processMovement(RIGHT, deltaTime);
+			camera.processMovement(RIGHT, deltaTime, godMode);
 		if (keys[GLFW_KEY_UP])
 			camera.processLook(0, 1);
 		if (keys[GLFW_KEY_DOWN])

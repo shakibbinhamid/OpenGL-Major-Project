@@ -171,7 +171,6 @@
     <ClInclude Include="..\..\..\include\skybox.hpp" />
     <ClInclude Include="..\..\..\include\tour.hpp" />
     <ClInclude Include="..\..\..\include\world.h" />
-    <ClInclude Include="Header.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\shaders\shader.frag" />

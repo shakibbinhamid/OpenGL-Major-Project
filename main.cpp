@@ -101,7 +101,7 @@ GLuint WIDTH = 800, HEIGHT = 600;
 GLFWwindow* window = nullptr;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 2.0f, 0.0f)); //-4.02939f, 10.0f, -34.2374f
+Camera camera(glm::vec3(0.0f, 0.5f, 0.0f)); //-4.02939f, 10.0f, -34.2374f
 bool keys[1024];
 
 GLfloat deltaTime = 0.0f;
@@ -360,6 +360,8 @@ int main() {
 	//for (int i = 0; i < HOUSE_NUMBER; i++) {
 	//	physics.addBox("House " + to_string(i), houseSizes[i][0], houseSizes[i][1], houseSizes[i][2], housePos[i]);
 	//}
+
+	printHelp();
 	
     //----------------------------------- Game loop ---------------------------------------------------------------/
 

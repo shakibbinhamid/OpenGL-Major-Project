@@ -38,4 +38,6 @@ GLuint loadCubemap(vector<const GLchar*> faces);
 
 GLboolean isTouring();
 
+void printHelp();
+
 #endif

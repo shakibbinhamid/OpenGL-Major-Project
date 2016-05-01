@@ -94,7 +94,7 @@ public:
     }
     
     // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void processMovement(Camera_Movement direction, GLfloat deltaTime) {
+    void processMovement(Camera_Movement direction, GLfloat deltaTime, GLboolean godMode = false) {
         GLfloat velocity = lookSpeed * deltaTime;
         
         if (direction == FORWARD)   position += front * velocity;
@@ -102,7 +102,7 @@ public:
         if (direction == LEFT)      position -= right * velocity;
         if (direction == RIGHT)     position += right * velocity;
         
-        //position.y = 0.0f; // to restrict camera movement in xz plane
+        if (!godMode) position.y = 0.5f; // to restrict camera movement in xz plane
     }
     
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
@@ -139,11 +139,11 @@ public:
 		updateCameraVectors();
 	}
 
-	void stepTour(GLfloat f, GLfloat b, GLfloat l, GLfloat r, GLfloat up, GLfloat down, GLfloat left, GLfloat right, GLfloat deltaTime) {
-		if (f == 1) processMovement(FORWARD, deltaTime);
-		if (b == 1) processMovement(BACKWARD, deltaTime);
-		if (l == 1) processMovement(LEFT, deltaTime);
-		if (r == 1) processMovement(RIGHT, deltaTime);
+	void stepTour(GLfloat f, GLfloat b, GLfloat l, GLfloat r, GLfloat up, GLfloat down, GLfloat left, GLfloat right, GLfloat deltaTime, GLfloat godMode = true) {
+		if (f == 1) processMovement(FORWARD, deltaTime, godMode);
+		if (b == 1) processMovement(BACKWARD, deltaTime, godMode);
+		if (l == 1) processMovement(LEFT, deltaTime, godMode);
+		if (r == 1) processMovement(RIGHT, deltaTime, godMode);
 
 		if (up == 1) processLook(0, 1);
 		if (down == 1) processLook(0, -1);
@@ -193,6 +193,10 @@ public:
     GLfloat getPitch(){
         return pitch;
     }
+
+	GLfloat getYaw() {
+		return yaw;
+	}
     
     void setPitch(GLfloat p){
         pitch = p;

@@ -60,18 +60,35 @@ public:
 		cout << "Tour stopped" << endl;
 	}
 
-	void stepTour(Camera * camera, GLfloat deltaTime) {
+	GLboolean isPaused() {
+		return paused;
+	}
+
+	void pauseTour(Camera * camera) {
+		this->last_direction = glm::vec2(camera->getYaw(), camera->getPitch());
+		this->last_position = camera->getPosition();
+		this->paused = true;
+	}
+
+	void resumeTour(Camera * camera) {
+		camera->setUpTour(last_direction.x, last_direction.y, last_position.x, last_position.y, last_position.z);
+		paused = false;
+	}
+
+	void stepTour(Camera * camera, GLfloat deltaTime, GLfloat godMode = true) {
 		if (STEP >= cameraParamOffsets.size() || STEP == 0) restartTour(camera);
 
 		camera->stepTour(cameraParamOffsets[STEP][0], cameraParamOffsets[STEP][1], cameraParamOffsets[STEP][2], cameraParamOffsets[STEP][3],
 						 cameraParamOffsets[STEP][4], cameraParamOffsets[STEP][5], cameraParamOffsets[STEP][6], cameraParamOffsets[STEP][7],
-						 deltaTime);
+						 deltaTime, godMode);
 
 		STEP++;
 	}
+
 private:
 	vector<vector<GLfloat>> cameraParamOffsets;
 	glm::vec3 start_position, last_position;
 	glm::vec2 start_direction, last_direction;
 	int STEP;
+	GLboolean paused = false;
 };
