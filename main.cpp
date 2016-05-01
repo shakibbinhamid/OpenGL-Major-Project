@@ -207,6 +207,14 @@ void drawRobot(Shader shader, Model robot, glm::vec3 pos){
     drawModel(shader, robot, pos, glm::vec3(0.0025f));
 }
 
+void drawSrvDrone(Shader shader, Model drone, glm::vec3 pos) {
+	drawModel(shader, drone, pos, glm::vec3(0.0025f));
+}
+
+void drawAtkDrone(Shader shader, Model drone, glm::vec3 pos) {
+	drawModel(shader, drone, pos, glm::vec3(0.5f));
+}
+
 void drawDebris(Shader shader, Model bus, glm::vec3 pos){
     drawModel(shader, bus, pos, glm::vec3(0.05f));
 }
@@ -226,7 +234,8 @@ void drawSun(Shader sunShader, Mesh sun, glm::mat4 projection, glm::mat4 view, g
 //----------------------------------- complete scene render method ---------------------------------//
 void sceneRender(Shader shader, Shader sunShader,
                  glm::mat4 projection, glm::mat4 view,
-                 Model env, Model lamp, Model tree, Model robot, Model debris,
+                 Model env, Model lamp, Model tree, Model debris,
+				 Model robot, Model atkDrone, Model srvDrone,
                  Mesh floor, Mesh sun){
     shader.Use();
     glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -274,6 +283,8 @@ void sceneRender(Shader shader, Shader sunShader,
 	}
 
     drawRobot(shader, robot, glm::vec3(0.0f, 0.0f, 0.0f));
+	drawSrvDrone(shader, srvDrone, glm::vec3(0.0f, 3.0f, 0.0f));
+	drawAtkDrone(shader, atkDrone, glm::vec3(0.0f, 4.0f, 0.0f));
 
     // the sun
     drawSun(sunShader, sun, projection, view, sunPos);
@@ -304,7 +315,9 @@ int main() {
     Model env("models/environment/Street environment_V01.obj", "Houses");
     Model straightLamp("models/streetlamp/streetlamp.obj", "Straight Lamps");
     Model tree("models/Tree/Tree.obj", "Tree");
-    Model robot("models/BB8/bb8.obj", "Bus");
+    Model robot("models/BB8/bb8.obj", "BB 8");
+	Model atkDrone("models/drone/Drone.obj", "Attack Drone");
+	Model srvDrone("models/drone-mq/MQ-27.obj", "Survailance Drone");
     Model debris("models/debris/Item01.obj", "Debris");
     Mesh sun = generateUVSphere(50, 50, 2.00, "sun");
     sun.addTextureFromFile("images/sunmap.jpg",
@@ -366,7 +379,8 @@ int main() {
 
         sceneRender(shader, sunShader,
                     projection, view,
-                    env, straightLamp, tree, robot, debris,
+                    env, straightLamp, tree, debris,
+					robot, atkDrone, srvDrone,
                     floor, sun);
 
         cityscape.draw(skyboxShader);
