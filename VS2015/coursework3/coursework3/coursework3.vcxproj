@@ -82,6 +82,7 @@
     <IncludePath>$(SolutionDir)..\..\include\bullet;$(SolutionDir)..\..\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\..\lib\WIN32;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)..\..\</OutDir>
+    <TargetName>$(ProjectName)-WIN32</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -160,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\camera.hpp" />
+    <ClInclude Include="..\..\..\include\CircularStepper.h" />
     <ClInclude Include="..\..\..\include\gl_util.hpp" />
     <ClInclude Include="..\..\..\include\mesh.hpp" />
     <ClInclude Include="..\..\..\include\mesh_generator.hpp" />
@@ -168,6 +170,8 @@
     <ClInclude Include="..\..\..\include\shader.hpp" />
     <ClInclude Include="..\..\..\include\skybox.hpp" />
     <ClInclude Include="..\..\..\include\tour.hpp" />
+    <ClInclude Include="..\..\..\include\world.h" />
+    <ClInclude Include="Header.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\shaders\shader.frag" />

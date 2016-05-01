@@ -31,6 +31,7 @@
 #include "mesh_generator.hpp"
 #include "skybox.hpp"
 #include "PhysicsWorld.hpp"
+#include "CircularStepper.h"
 
 const GLfloat ATTEN_CONST = 1.0f;
 const GLfloat ATTEN_LIN   = 0.009f;
@@ -111,6 +112,7 @@ GLint stacks = 100;
 GLint slices = 100;
 GLfloat radius = 1.0f;
 
+CircularStepper * droneStepper = new CircularStepper();
 
 //------------------------------------------------- bullet methods --------------------------------------------------------------------------------------------------------------------------------------------/
 
@@ -207,8 +209,8 @@ void drawRobot(Shader shader, Model robot, glm::vec3 pos){
     drawModel(shader, robot, pos, glm::vec3(0.0025f));
 }
 
-void drawSrvDrone(Shader shader, Model drone, glm::vec3 pos) {
-	drawModel(shader, drone, pos, glm::vec3(0.0025f));
+void drawSrvDrone(Shader shader, Model drone, glm::vec3 pos, GLfloat angle) {
+	drawModel(shader, drone, pos, glm::vec3(0.0025f), glm::vec3(0.0f, 1.0f, 0.0f), angle);
 }
 
 void drawAtkDrone(Shader shader, Model drone, glm::vec3 pos) {
@@ -282,9 +284,15 @@ void sceneRender(Shader shader, Shader sunShader,
 		drawModel(shader, tree, treePos[i], glm::vec3(0.2f));
 	}
 
-    drawRobot(shader, robot, glm::vec3(0.0f, 0.0f, 0.0f));
-	drawSrvDrone(shader, srvDrone, glm::vec3(0.0f, 3.0f, 0.0f));
-	drawAtkDrone(shader, atkDrone, glm::vec3(0.0f, 4.0f, 0.0f));
+	droneStepper->step();
+
+	GLfloat srv_x = glm::sin(droneStepper->getCurrentStep()) + 2 * glm::sin(2 * droneStepper->getCurrentStep());
+	GLfloat srv_y = glm::cos(droneStepper->getCurrentStep()) - 2 * glm::cos(2 * droneStepper->getCurrentStep());
+	GLfloat srv_z = -glm::sin(3 * droneStepper->getCurrentStep());
+
+    drawRobot(shader, robot, glm::vec3(0.0f, 0.0f, srv_y));
+	drawSrvDrone(shader, srvDrone, glm::vec3(srv_x, srv_z + 2, srv_y), srv_x);
+	drawAtkDrone(shader, atkDrone, glm::vec3(5 * sin(glfwGetTime()), 2, 5 * cos(glfwGetTime())));
 
     // the sun
     drawSun(sunShader, sun, projection, view, sunPos);
@@ -323,7 +331,7 @@ int main() {
     sun.addTextureFromFile("images/sunmap.jpg",
                            "material.texture_diffuse");
 	Mesh floor = generateRectangularFloor(20.0, 20.0, 0, "roads");
-	floor.addTextureFromFile("images/concrete.jpg",
+	floor.addTextureFromFile("images/concrete2.jpg",
                            "material.texture_diffuse");
     floor.addTextureFromFile("images/concrete_spec.jpeg",
                              "material.texture_specular");

@@ -5,7 +5,7 @@
 /*
  *Defined in the z direction
  */
-#define COE 1.0
+#define COE 0.9
 /*
 * Coefficient of restitution.
 */

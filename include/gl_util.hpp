@@ -36,4 +36,6 @@ GLint getMaxTextureSupported();
 
 GLuint loadCubemap(vector<const GLchar*> faces);
 
+GLboolean isTouring();
+
 #endif

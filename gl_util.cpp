@@ -99,6 +99,10 @@ GLint getMaxTextureSupported(){
     return max_texture_units;
 }
 
+GLboolean isTouring() {
+	return tourMode;
+}
+
 void do_movement() {
 	tourMode = keys[GLFW_KEY_T];
 	record = keys[GLFW_KEY_V];
