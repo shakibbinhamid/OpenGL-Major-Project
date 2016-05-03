@@ -350,7 +350,7 @@ int main() {
 	physics.addModel(env, glm::vec3(0.0f, -1.0f, 0.0f));
 
 	printHelp();
-	
+
     //----------------------------------- Game loop ---------------------------------------------------------------/
 
     // Main loop
@@ -388,7 +388,7 @@ int main() {
     }
     // Terminate GLFW
     glfwDestroyWindow(window);
-	physics.shutdown();
+	//physics.shutdown();
     glfwTerminate();
     return EXIT_SUCCESS;
 }
