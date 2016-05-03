@@ -15,7 +15,7 @@
 GLint max_texture_units;
 Tour t("tourRoute.txt", "tourInit.txt");
 GLboolean record = false, tourMode = false, godMode = false;
-
+GLfloat accelaration = 0;
 const int toggleKeys[] = { GLFW_KEY_T, GLFW_KEY_V, GLFW_KEY_G, GLFW_KEY_SPACE };
 
 void printHelp() {
@@ -84,6 +84,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 				keys[GLFW_KEY_G] = true; // turn on god mode for elevation
 				cout << "God Mode has been turned on for elevation" << endl;
 			}
+		}
+		if (key == GLFW_KEY_J && action == GLFW_PRESS) {
+			accelaration += 0.25;
+			if (accelaration > 1) accelaration = 1;
+			cout << "accelarating x" << accelaration / 0.25 << endl;
+		}
+		if (key == GLFW_KEY_K && action == GLFW_PRESS) {
+			accelaration -= 0.25;
+			if (accelaration < 0) accelaration = 0;
+			cout << "decclarating. accelaration = x" << accelaration / 0.25 << endl;
 		}
     }
 	if (key == GLFW_KEY_R && action == GLFW_PRESS) t.restartTour(&camera);
@@ -159,6 +169,7 @@ GLboolean isTouring() {
 	return tourMode;
 }
 
+
 void do_movement() {
 	// set the states
 	tourMode = keys[GLFW_KEY_T]; // is it touring?
@@ -180,6 +191,20 @@ void do_movement() {
 	// either step tour or let the user control the camera
 	if (tourMode) {
 		t.stepTour(&camera, deltaTime);
+	} else if (accelaration > 0) {
+		camera.processMovement(FORWARD, deltaTime * accelaration, godMode);
+		if (keys[GLFW_KEY_UP])
+			camera.processLook(0, 1);
+		if (keys[GLFW_KEY_DOWN])
+			camera.processLook(0, -1);
+		if (keys[GLFW_KEY_LEFT])
+			camera.processLook(-1, 0);
+		if (keys[GLFW_KEY_RIGHT])
+			camera.processLook(1, 0);
+		if (keys[GLFW_KEY_LEFT_SHIFT])
+			camera.elevateUp(godMode);
+		if (keys[GLFW_KEY_RIGHT_SHIFT])
+			camera.elevateDown(godMode);
 	} else {
 		// Camera controls
 		if (keys[GLFW_KEY_W])
