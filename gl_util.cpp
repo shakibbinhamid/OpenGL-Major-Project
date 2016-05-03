@@ -16,7 +16,7 @@ GLint max_texture_units;
 Tour t("tourRoute.txt", "tourInit.txt");
 GLboolean record = false, tourMode = false, godMode = false;
 
-const int toggleKeys[] = { GLFW_KEY_T, GLFW_KEY_V, GLFW_KEY_G };
+const int toggleKeys[] = { GLFW_KEY_T, GLFW_KEY_V, GLFW_KEY_G, GLFW_KEY_SPACE };
 
 void printHelp() {
 	cout << "**********************************************************" << endl;
@@ -60,11 +60,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         glfwSetWindowShouldClose(window, GL_TRUE);
 
 	bool toggleKey = std::find(std::begin(toggleKeys), std::end(toggleKeys), key) != std::end(toggleKeys);
-	if (key == GLFW_KEY_SPACE) keys[GLFW_KEY_T] = false;
+	
 	if (toggleKey && action == GLFW_PRESS) {
-		keys[key] = !keys[key];
-		if (key == GLFW_KEY_G && keys[key]) cout << "God mode enabled" << endl;
-		if (key == GLFW_KEY_G && !keys[key]) cout << "God mode disabled" << endl;
+		keys[key] = !keys[key];// toggle the key
+		if (key == GLFW_KEY_SPACE) keys[GLFW_KEY_T] = false; // special case : press space == tour stop
+		if (key == GLFW_KEY_G && keys[key]) cout << "God mode enabled" << endl; // god mode enabled
+		if (key == GLFW_KEY_G && !keys[key]) cout << "God mode disabled" << endl; // god mode disabled
 		if ((key == GLFW_KEY_T || key == GLFW_KEY_SPACE) && !keys[GLFW_KEY_T] && !t.isPaused()) {
 			cout << "Tour paused" << endl;
 			t.pauseTour(&camera);
