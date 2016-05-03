@@ -89,12 +89,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 				cout << "God Mode has been turned on for elevation" << endl;
 			}
 		}
-		if (key == GLFW_KEY_J && action == GLFW_PRESS) {
+		if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
 			accelaration += 0.25;
 			if (accelaration > 1) accelaration = 1;
 			cout << "accelarating x" << accelaration / 0.25 << endl;
 		}
-		if (key == GLFW_KEY_K && action == GLFW_PRESS) {
+		if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
 			accelaration -= 0.25;
 			if (accelaration < 0) accelaration = 0;
 			cout << "decclarating. accelaration = x" << accelaration / 0.25 << endl;
@@ -199,9 +199,9 @@ void do_movement() {
 		t.stepTour(&camera, deltaTime);
 	} else if (accelaration > 0 && !keys[GLFW_KEY_SPACE]) {
 		camera.processMovement(FORWARD, deltaTime * accelaration, godMode);
-		if (keys[GLFW_KEY_UP])
+		if (keys[GLFW_KEY_J])
 			camera.processLook(0, 1);
-		if (keys[GLFW_KEY_DOWN])
+		if (keys[GLFW_KEY_K])
 			camera.processLook(0, -1);
 		if (keys[GLFW_KEY_LEFT])
 			camera.processLook(-1, 0);
@@ -221,9 +221,9 @@ void do_movement() {
 			camera.processMovement(LEFT, deltaTime, godMode);
 		if (keys[GLFW_KEY_D])
 			camera.processMovement(RIGHT, deltaTime, godMode);
-		if (keys[GLFW_KEY_UP])
+		if (keys[GLFW_KEY_J])
 			camera.processLook(0, 1);
-		if (keys[GLFW_KEY_DOWN])
+		if (keys[GLFW_KEY_K])
 			camera.processLook(0, -1);
 		if (keys[GLFW_KEY_LEFT])
 			camera.processLook(-1, 0);

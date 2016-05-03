@@ -400,7 +400,7 @@ int main() {
     }
     // Terminate GLFW
     glfwDestroyWindow(window);
-	physics.shutdown();
+	//physics.shutdown();
     glfwTerminate();
     return EXIT_SUCCESS;
 }
