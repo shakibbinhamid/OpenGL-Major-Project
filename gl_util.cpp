@@ -49,11 +49,16 @@ void printHelp() {
 	cout << "----------------------------------------------------------" << endl;
 	cout << "| LEFT \t| Look left" << endl;
 	cout << "| RIGHT | Look right" << endl;
+	cout << "| J \t | Look up" << endl;
+	cout << "| K \t | Look down" << endl;
 	cout << "----------------------------------------------------------" << endl;
 	cout << "| G \t| God Mode Toggle. Fly enabled. Move anywhere." << endl;
 	cout << "----------------------------------------------------------" << endl;
 	cout << "| PG_UP | Elevate up. God mode gets turned on." << endl;
 	cout << "| PG_DN | Elevate down. God mode gets turned on." << endl;
+	cout << "----------------------------------------------------------" << endl;
+	cout << "| UP \t| Accelarate forward." << endl;
+	cout << "| DOWN\t| Deccelarate. Accelaration 0 is stop." << endl;
 	cout << "**********************************************************" << endl;
 }
 
@@ -70,7 +75,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		if (key == GLFW_KEY_G && keys[key]) cout << "God mode enabled" << endl; // god mode enabled
 		if (key == GLFW_KEY_G && !keys[key]) cout << "God mode disabled" << endl; // god mode disabled
 		if ((key == GLFW_KEY_T || key == GLFW_KEY_SPACE) && !keys[GLFW_KEY_T] && !t.isPaused()) {
-			cout << "Tour paused" << endl;
 			t.pauseTour(&camera);
 		} else if ((key == GLFW_KEY_T) && t.isPaused()) {
 			t.resumeTour(&camera);
@@ -96,6 +100,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			cout << "decclarating. accelaration = x" << accelaration / 0.25 << endl;
 		}
     }
+	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && keys[GLFW_KEY_SPACE]) cout << "Automatic camera accelaration stopped." << endl;
+	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && !keys[GLFW_KEY_SPACE]) cout << "Automatic camera accelaration allowed." << endl;
 	if (key == GLFW_KEY_R && action == GLFW_PRESS) t.restartTour(&camera);
 	if (key == GLFW_KEY_E) {
 		keys[GLFW_KEY_T] = false;
@@ -191,7 +197,7 @@ void do_movement() {
 	// either step tour or let the user control the camera
 	if (tourMode) {
 		t.stepTour(&camera, deltaTime);
-	} else if (accelaration > 0) {
+	} else if (accelaration > 0 && !keys[GLFW_KEY_SPACE]) {
 		camera.processMovement(FORWARD, deltaTime * accelaration, godMode);
 		if (keys[GLFW_KEY_UP])
 			camera.processLook(0, 1);
