@@ -8,6 +8,6 @@ GLFW = 3
 GLew = true
 STD = 'c++11'
 BOOST = false
-BULLET = false
+BULLET = true
 AntTweakBar = false
 MODEL = false
