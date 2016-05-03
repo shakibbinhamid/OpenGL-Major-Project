@@ -51,6 +51,9 @@ void printHelp() {
 	cout << "| RIGHT | Look right" << endl;
 	cout << "----------------------------------------------------------" << endl;
 	cout << "| G \t| God Mode Toggle. Fly enabled. Move anywhere." << endl;
+	cout << "----------------------------------------------------------" << endl;
+	cout << "| PG_UP | Elevate up. God mode gets turned on." << endl;
+	cout << "| PG_DN | Elevate down. God mode gets turned on." << endl;
 	cout << "**********************************************************" << endl;
 }
 
@@ -76,6 +79,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	} else if (key >= 0 && key < 1024) {
         if(action == GLFW_PRESS)						keys[key] = true;
         else if( !toggleKey && action == GLFW_RELEASE)  keys[key] = false;
+		if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) {
+			if (!keys[GLFW_KEY_G]) {
+				keys[GLFW_KEY_G] = true; // turn on god mode for elevation
+				cout << "God Mode has been turned on for elevation" << endl;
+			}
+		}
     }
 	if (key == GLFW_KEY_R && action == GLFW_PRESS) t.restartTour(&camera);
 	if (key == GLFW_KEY_E) {
@@ -189,6 +198,10 @@ void do_movement() {
 			camera.processLook(-1, 0);
 		if (keys[GLFW_KEY_RIGHT])
 			camera.processLook(1, 0);
+		if (keys[GLFW_KEY_LEFT_SHIFT])
+			camera.elevateUp(godMode);
+		if (keys[GLFW_KEY_RIGHT_SHIFT])
+			camera.elevateDown(godMode);
 		if (camera.isRecording())
 			camera.recordTourStep(keys[GLFW_KEY_W] ? 1 : 0,
 				keys[GLFW_KEY_S] ? 1 : 0,

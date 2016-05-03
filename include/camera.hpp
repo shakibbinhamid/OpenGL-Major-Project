@@ -38,6 +38,8 @@ const GLfloat   DEFAULT_CAMERA_PITCH      =  0.0f;
 const GLfloat   DEFAULT_CAMERA_SPEED      =  3.0f;
 const GLfloat   DEFAULT_CAMERA_SENSITIVTY =  0.25f;
 const GLfloat   DEFAULT_CAMERA_ZOOM       =  45.0f;
+const GLfloat	DEFAULT_CAMERA_ELEVATION  = 0.5f;
+const GLfloat	DEFAULT_ELEVATION_INC	  = 0.01f;
 const glm::vec3 DEFAULT_CAMERA_POS        = glm::vec3(0.0f, 0.0f, 0.0f);
 const glm::vec3 DEFAULT_CAMERA_FRONT      = glm::vec3(0.0f, 0.0f, -1.0f);
 const glm::vec3 DEFAULT_CAMERA_UP         = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -122,6 +124,15 @@ public:
         // Update Front, Right and Up Vectors using the updated Eular angles
         updateCameraVectors();
     }
+
+	void elevateUp(GLboolean godMode = true) {
+		if (godMode) position.y += DEFAULT_ELEVATION_INC;
+	}
+
+	void elevateDown(GLboolean godMode = true) {
+		if (godMode) position.y -= DEFAULT_ELEVATION_INC;
+		if (position.y <= DEFAULT_CAMERA_ELEVATION)  position.y = DEFAULT_CAMERA_ELEVATION;
+	}
 
 	void recordTourInit() {
 		fprintf(tourInitFile, "%f %f %f %f %f\n", position.x, position.y, position.z, yaw, pitch);
