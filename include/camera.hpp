@@ -40,7 +40,7 @@ const GLfloat   DEFAULT_CAMERA_SENSITIVTY =  0.25f;
 const GLfloat   DEFAULT_CAMERA_ZOOM       =  45.0f;
 const GLfloat	DEFAULT_CAMERA_ELEVATION  = 0.5f;
 const GLfloat	DEFAULT_ELEVATION_INC	  = 0.01f;
-const glm::vec3 DEFAULT_CAMERA_POS        = glm::vec3(0.0f, 0.0f, 0.0f);
+const glm::vec3 DEFAULT_CAMERA_POS        = glm::vec3(0.0f, 0.5f, 0.0f);
 const glm::vec3 DEFAULT_CAMERA_FRONT      = glm::vec3(0.0f, 0.0f, -1.0f);
 const glm::vec3 DEFAULT_CAMERA_UP         = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -162,6 +162,17 @@ public:
 		if (right == 1) processLook(1, 0);
 	}
 
+	void returnToLastPos() {
+		setUpTour(last_direction.x, last_direction.y, last_position.x, last_position.y, last_position.z);
+	}
+
+	void goToPredefinedPos(GLfloat yaw, GLfloat pitch, GLfloat posx, GLfloat posy, GLfloat posz) {
+		last_position = this->position;
+		last_direction.x = this->yaw;
+		last_direction.y = this->pitch;
+		setUpTour(yaw, pitch, posx, posy, posz);
+	}
+
 	GLboolean isRecording() {
 		return recording;
 	}
@@ -240,6 +251,9 @@ private:
 	FILE * tourInitFile;
 	FILE * tourRouteFile;
 	GLboolean recording = false;
+
+	glm::vec3 last_position = glm::vec3(DEFAULT_CAMERA_POS);
+	glm::vec2 last_direction = glm::vec2(DEFAULT_CAMERA_YAW, DEFAULT_CAMERA_PITCH);
     
     // Calculates the front vector from the Camera's (updated) Eular Angles
     void updateCameraVectors() {

@@ -49,8 +49,8 @@ void printHelp() {
 	cout << "----------------------------------------------------------" << endl;
 	cout << "| LEFT \t| Look left" << endl;
 	cout << "| RIGHT | Look right" << endl;
-	cout << "| J \t | Look up" << endl;
-	cout << "| K \t | Look down" << endl;
+	cout << "| J \t| Look up" << endl;
+	cout << "| K \t| Look down" << endl;
 	cout << "----------------------------------------------------------" << endl;
 	cout << "| G \t| God Mode Toggle. Fly enabled. Move anywhere." << endl;
 	cout << "----------------------------------------------------------" << endl;
@@ -59,6 +59,9 @@ void printHelp() {
 	cout << "----------------------------------------------------------" << endl;
 	cout << "| UP \t| Accelarate forward." << endl;
 	cout << "| DOWN\t| Deccelarate. Accelaration 0 is stop." << endl;
+	cout << "----------------------------------------------------------" << endl;
+	cout << "| P \t| Move to predefined viewpoint." << endl;
+	cout << "| M \t| Return to previous position and direction." << endl;
 	cout << "**********************************************************" << endl;
 }
 
@@ -83,21 +86,27 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	} else if (key >= 0 && key < 1024) {
         if(action == GLFW_PRESS)						keys[key] = true;
         else if( !toggleKey && action == GLFW_RELEASE)  keys[key] = false;
-		if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT || key == GLFW_KEY_PAGE_UP || key == GLFW_KEY_PAGE_DOWN) {
+		if (key == GLFW_KEY_PAGE_UP || key == GLFW_KEY_PAGE_DOWN) {
 			if (!keys[GLFW_KEY_G]) {
 				keys[GLFW_KEY_G] = true; // turn on god mode for elevation
 				cout << "God Mode has been turned on for elevation" << endl;
 			}
 		}
-		if (key == GLFW_KEY_J && action == GLFW_PRESS) {
+		if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
 			accelaration += 0.25;
 			if (accelaration > 1) accelaration = 1;
 			cout << "accelarating x" << accelaration / 0.25 << endl;
 		}
-		if (key == GLFW_KEY_K && action == GLFW_PRESS) {
+		if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
 			accelaration -= 0.25;
 			if (accelaration < 0) accelaration = 0;
 			cout << "decclarating. accelaration = x" << accelaration / 0.25 << endl;
+		}
+		if (key == GLFW_KEY_P && action == GLFW_PRESS && !keys[GLFW_KEY_T]) {
+			camera.goToPredefinedPos(-132, -5.5, 11.6872, 5.08689, 11.8925);
+		}
+		if (key == GLFW_KEY_M && action == GLFW_PRESS) {
+			camera.returnToLastPos();
 		}
     }
 	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && keys[GLFW_KEY_SPACE]) cout << "Automatic camera accelaration stopped." << endl;
@@ -199,17 +208,17 @@ void do_movement() {
 		t.stepTour(&camera, deltaTime);
 	} else if (accelaration > 0 && !keys[GLFW_KEY_SPACE]) {
 		camera.processMovement(FORWARD, deltaTime * accelaration, godMode);
-		if (keys[GLFW_KEY_UP])
+		if (keys[GLFW_KEY_J])
 			camera.processLook(0, 1);
-		if (keys[GLFW_KEY_DOWN])
+		if (keys[GLFW_KEY_K])
 			camera.processLook(0, -1);
 		if (keys[GLFW_KEY_LEFT])
 			camera.processLook(-1, 0);
 		if (keys[GLFW_KEY_RIGHT])
 			camera.processLook(1, 0);
-		if (keys[GLFW_KEY_LEFT_SHIFT] || keys[GLFW_KEY_PAGE_UP])
+		if (keys[GLFW_KEY_PAGE_UP])
 			camera.elevateUp(godMode);
-		if (keys[GLFW_KEY_RIGHT_SHIFT] || keys[GLFW_KEY_PAGE_DOWN])
+		if (keys[GLFW_KEY_PAGE_DOWN])
 			camera.elevateDown(godMode);
 	} else {
 		// Camera controls
@@ -221,25 +230,25 @@ void do_movement() {
 			camera.processMovement(LEFT, deltaTime, godMode);
 		if (keys[GLFW_KEY_D])
 			camera.processMovement(RIGHT, deltaTime, godMode);
-		if (keys[GLFW_KEY_UP])
+		if (keys[GLFW_KEY_J])
 			camera.processLook(0, 1);
-		if (keys[GLFW_KEY_DOWN])
+		if (keys[GLFW_KEY_K])
 			camera.processLook(0, -1);
 		if (keys[GLFW_KEY_LEFT])
 			camera.processLook(-1, 0);
 		if (keys[GLFW_KEY_RIGHT])
 			camera.processLook(1, 0);
-		if (keys[GLFW_KEY_LEFT_SHIFT] || keys[GLFW_KEY_PAGE_UP])
+		if (keys[GLFW_KEY_PAGE_UP])
 			camera.elevateUp(godMode);
-		if (keys[GLFW_KEY_RIGHT_SHIFT] || keys[GLFW_KEY_PAGE_DOWN])
+		if (keys[GLFW_KEY_PAGE_DOWN])
 			camera.elevateDown(godMode);
 		if (camera.isRecording())
 			camera.recordTourStep(keys[GLFW_KEY_W] ? 1 : 0,
 				keys[GLFW_KEY_S] ? 1 : 0,
 				keys[GLFW_KEY_A] ? 1 : 0,
 				keys[GLFW_KEY_D] ? 1 : 0,
-				keys[GLFW_KEY_UP] ? 1 : 0,
-				keys[GLFW_KEY_DOWN] ? 1 : 0,
+				keys[GLFW_KEY_J] ? 1 : 0,
+				keys[GLFW_KEY_K] ? 1 : 0,
 				keys[GLFW_KEY_LEFT] ? 1 : 0,
 				keys[GLFW_KEY_RIGHT] ? 1 : 0);
 	}

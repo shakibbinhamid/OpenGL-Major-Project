@@ -76,7 +76,10 @@ public:
 	}
 
 	void stepTour(Camera * camera, GLfloat deltaTime, GLfloat godMode = true) {
-		if (STEP >= cameraParamOffsets.size() || STEP == 0) restartTour(camera);
+		if (STEP >= cameraParamOffsets.size() || STEP == 0) {
+			cout << "Tour Finished." << endl;
+			restartTour(camera);
+		}
 
 		camera->stepTour(cameraParamOffsets[STEP][0], cameraParamOffsets[STEP][1], cameraParamOffsets[STEP][2], cameraParamOffsets[STEP][3],
 						 cameraParamOffsets[STEP][4], cameraParamOffsets[STEP][5], cameraParamOffsets[STEP][6], cameraParamOffsets[STEP][7],

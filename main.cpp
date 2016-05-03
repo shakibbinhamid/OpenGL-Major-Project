@@ -238,7 +238,7 @@ void sceneRender(Shader shader, Shader sunShader,
                  glm::mat4 projection, glm::mat4 view,
                  Model env, Model lamp, Model tree, Model debris,
 				 Model robot, Model atkDrone, Model srvDrone,
-                 Mesh floor, Mesh sun){
+                 Mesh floor){
     shader.Use();
     glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -295,7 +295,7 @@ void sceneRender(Shader shader, Shader sunShader,
 	drawAtkDrone(shader, atkDrone, glm::vec3(5 * sin(glfwGetTime()), 2, 5 * cos(glfwGetTime())));
 
     // the sun
-    drawSun(sunShader, sun, projection, view, sunPos);
+    //drawSun(sunShader, sun, projection, view, sunPos);
 }
 
 //---------------------------------------------------- main method --------------------------------------------------------------------------------------------------------------------------------------------/
@@ -327,9 +327,6 @@ int main() {
 	Model atkDrone("models/drone/Drone.obj", "Attack Drone");
 	Model srvDrone("models/drone-mq/MQ-27.obj", "Survailance Drone");
     Model debris("models/debris/Item01.obj", "Debris");
-    Mesh sun = generateUVSphere(50, 50, 2.00, "sun");
-    sun.addTextureFromFile("images/sunmap.jpg",
-                           "material.texture_diffuse");
 	Mesh floor = generateRectangularFloor(20.0, 20.0, 0, "roads");
 	floor.addTextureFromFile("images/concrete2.jpg",
                            "material.texture_diffuse");
@@ -351,15 +348,6 @@ int main() {
 
 	Physics physics;
 	physics.addModel(env, glm::vec3(0.0f, -1.0f, 0.0f));
-
-	//physics.addSphere("sphere 2", 1, 1, glm::vec3(0, 20, 0));
-	//physics.addSphere("sphere 3", 1, 1, glm::vec3(0, 10, 0));
- //   physics.addSide("floor", glm::vec3(0, 1, 0), glm::vec3(0, 0.015, 0));
-	////physics.addBox("House 1", 2, 3.5, 1.715, glm::vec3(3.1, 1.715/2, 4.0));
-
-	//for (int i = 0; i < HOUSE_NUMBER; i++) {
-	//	physics.addBox("House " + to_string(i), houseSizes[i][0], houseSizes[i][1], houseSizes[i][2], housePos[i]);
-	//}
 
 	printHelp();
 	
@@ -391,7 +379,7 @@ int main() {
                     projection, view,
                     env, straightLamp, tree, debris,
 					robot, atkDrone, srvDrone,
-                    floor, sun);
+                    floor);
 
         cityscape.draw(skyboxShader);
 
