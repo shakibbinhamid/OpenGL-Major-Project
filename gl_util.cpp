@@ -83,7 +83,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	} else if (key >= 0 && key < 1024) {
         if(action == GLFW_PRESS)						keys[key] = true;
         else if( !toggleKey && action == GLFW_RELEASE)  keys[key] = false;
-		if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) {
+		if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT || key == GLFW_KEY_PAGE_UP || key == GLFW_KEY_PAGE_DOWN) {
 			if (!keys[GLFW_KEY_G]) {
 				keys[GLFW_KEY_G] = true; // turn on god mode for elevation
 				cout << "God Mode has been turned on for elevation" << endl;
@@ -207,9 +207,9 @@ void do_movement() {
 			camera.processLook(-1, 0);
 		if (keys[GLFW_KEY_RIGHT])
 			camera.processLook(1, 0);
-		if (keys[GLFW_KEY_LEFT_SHIFT])
+		if (keys[GLFW_KEY_LEFT_SHIFT] || keys[GLFW_KEY_PAGE_UP])
 			camera.elevateUp(godMode);
-		if (keys[GLFW_KEY_RIGHT_SHIFT])
+		if (keys[GLFW_KEY_RIGHT_SHIFT] || keys[GLFW_KEY_PAGE_DOWN])
 			camera.elevateDown(godMode);
 	} else {
 		// Camera controls
@@ -229,9 +229,9 @@ void do_movement() {
 			camera.processLook(-1, 0);
 		if (keys[GLFW_KEY_RIGHT])
 			camera.processLook(1, 0);
-		if (keys[GLFW_KEY_LEFT_SHIFT])
+		if (keys[GLFW_KEY_LEFT_SHIFT] || keys[GLFW_KEY_PAGE_UP])
 			camera.elevateUp(godMode);
-		if (keys[GLFW_KEY_RIGHT_SHIFT])
+		if (keys[GLFW_KEY_RIGHT_SHIFT] || keys[GLFW_KEY_PAGE_DOWN])
 			camera.elevateDown(godMode);
 		if (camera.isRecording())
 			camera.recordTourStep(keys[GLFW_KEY_W] ? 1 : 0,
