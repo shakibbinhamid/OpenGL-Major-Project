@@ -14,15 +14,12 @@ version. 'debug' version will be markedly slow. Then run coursework3-WIN32.exe
 ### KEY BINDINGS:
 
 No use of mouse.
-
-**********************************************************
-| H     | Print HELP
-----------------------------------------------------------
-| T     |
-|       | Play a tour from start or
-|       | Resume a tour after a pause or
-|       | Pause a running tour.
-|       | Automatically restarts after end.
+1. H : Print HELP
+T     
+       Play a tour from start or
+       Resume a tour after a pause or
+       Pause a running tour.
+       Automatically restarts after end.
 ----------------------------------------------------------
 | E     |
 |       | Stop the tour.
@@ -58,7 +55,7 @@ No use of mouse.
 ----------------------------------------------------------
 | P     | Move to predefined viewpoint.
 | M     | Return to previous position and direction.
-**********************************************************
+----------------------------------------------------------
 
 ### List of Other Files :
 
