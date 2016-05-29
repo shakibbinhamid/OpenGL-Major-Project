@@ -1,6 +1,9 @@
-# OpenGL-Major-Project
+## OpenGL Major project for COMP3214
 
-BUILD:
+This is a major graphics coursework for a 3rd year University of Southampton module. The target was to build something that is
+inspired by an arena. This visualisation is about a little neighbourhood in a big city.
+
+### BUILD:
 
 on OSX type 'make' at the root directory, then run ./coursework3
 
@@ -8,7 +11,7 @@ on windows VS2015 is required. Not tested on earlier versions. Open
 'VS2015/coursework3/coursework3.sln' and build the 'release'
 version. 'debug' version will be markedly slow. Then run coursework3-WIN32.exe
 
-KEY BINDINGS:
+### KEY BINDINGS:
 
 No use of mouse.
 
@@ -57,7 +60,7 @@ No use of mouse.
 | M     | Return to previous position and direction.
 **********************************************************
 
-List of Other Files :
+### List of Other Files :
 
 tourInit.txt
   |___________ the initial position for the tour
@@ -122,7 +125,7 @@ include/tour.hpp
 include/world.h
   |_______________ bullet world variables
 
-How it works briefly:
+### How it works briefly:
   It loads models using assimp, loads textures for the models using stb_image.
   Then builds shader programs. Then sets up the physics. Finally in game loop
   the key commands are performed. Based on the inputs, a tour may be done etc.
@@ -141,7 +144,7 @@ How it works briefly:
     8. Cube mapping and skyboxing.
     9. Environment day-light simulation.
 
-Inspiration:
+### Inspiration:
 Bits of code and techniques were taken from these places.
 
   www.learnopengl.com
