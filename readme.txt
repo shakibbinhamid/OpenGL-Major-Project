@@ -1,9 +1,9 @@
-## OpenGL Major project for COMP3214
+OpenGL Major Project : COMP3214
 
-This is a major graphics coursework for a 3rd year University of Southampton module. The target was to build something that is
-inspired by an arena. This visualisation is about a little neighbourhood in a big city.
+This is a major graphics project in 3rd year Computer Science in University of Southampton. It's a visualisation of
+a little neighbourhood in a big city.
 
-### BUILD:
+BUILD:
 
 on OSX type 'make' at the root directory, then run ./coursework3
 
@@ -11,15 +11,18 @@ on windows VS2015 is required. Not tested on earlier versions. Open
 'VS2015/coursework3/coursework3.sln' and build the 'release'
 version. 'debug' version will be markedly slow. Then run coursework3-WIN32.exe
 
-### KEY BINDINGS:
+KEY BINDINGS:
 
 No use of mouse.
-1. H : Print HELP
-T     
-       Play a tour from start or
-       Resume a tour after a pause or
-       Pause a running tour.
-       Automatically restarts after end.
+
+**********************************************************
+| H     | Print HELP
+----------------------------------------------------------
+| T     |
+|       | Play a tour from start or
+|       | Resume a tour after a pause or
+|       | Pause a running tour.
+|       | Automatically restarts after end.
 ----------------------------------------------------------
 | E     |
 |       | Stop the tour.
@@ -55,9 +58,9 @@ T
 ----------------------------------------------------------
 | P     | Move to predefined viewpoint.
 | M     | Return to previous position and direction.
-----------------------------------------------------------
+**********************************************************
 
-### List of Other Files :
+List of Other Files :
 
 tourInit.txt
   |___________ the initial position for the tour
@@ -122,7 +125,7 @@ include/tour.hpp
 include/world.h
   |_______________ bullet world variables
 
-### How it works briefly:
+How it works briefly:
   It loads models using assimp, loads textures for the models using stb_image.
   Then builds shader programs. Then sets up the physics. Finally in game loop
   the key commands are performed. Based on the inputs, a tour may be done etc.
@@ -141,7 +144,7 @@ include/world.h
     8. Cube mapping and skyboxing.
     9. Environment day-light simulation.
 
-### Inspiration:
+Inspiration:
 Bits of code and techniques were taken from these places.
 
   www.learnopengl.com
